@@ -19,3 +19,13 @@ There is a utility script in the `util` you can run to do this. Tested on Ubuntu
 [ADD STEPS HERE]
 
 # Container Test
+
+[ADD STEPS HERE]
+
+```
+cp .env-example .env
+```
+
+# GCP Test
+
+[ADD STEPS HERE]
