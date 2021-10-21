@@ -10,20 +10,23 @@ I started by building out a simple toy API and built out the full devops pipelin
 
 I chose to launch this on a Kubernetes cluster on GCP using [SERVICE TO BE DETERMINED] as CI/CD
 
-# Non-Container Test
+# Local Test
+
+## Non-Container Test
 
 I like doing this especially when I first create the applications before containerizing as a sanity check
 
-There is a utility script in the `util` you can run to do this. Tested on Ubuntu 20.04 Desktop because that's what I use
+There is a utility script `util/start-local.sh` you can use. Tested on Ubuntu 20.04 Desktop
 
-[ADD STEPS HERE]
+[ADD STEPS HERE AFTER MAKING SCRIPT]
 
-# Container Test
+## Container Test
 
-[ADD STEPS HERE]
+This should work out of the box on a Linux system with Docker installed, tested on Ubuntu 20.04 Desktop
 
 ```
 cp .env-example .env
+docker-compose up --build
 ```
 
 # GCP Test
