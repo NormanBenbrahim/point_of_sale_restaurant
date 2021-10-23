@@ -10,6 +10,10 @@ I started by building out a simple toy API and built out the full devops pipelin
 
 I chose to launch this on a Kubernetes cluster on GCP using [SERVICE TO BE DETERMINED] as CI/CD
 
+# Extensions
+
+In the main `app/` folder I included an `extensions.py` file which is where I add extensions to flask. I started with a flask debug toolbar
+
 # Local Test
 
 ## Non-Container Test

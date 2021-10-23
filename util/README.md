@@ -1,1 +1,3 @@
-# This folder contains a few utility scripts to help with deployments and starting the application
+# Utility scripts to help with deployments & startup
+
+Some of these were replaced later by command line tools built directly into Flask

@@ -1,5 +1,7 @@
 from flask import Flask
 
+from app.extensions import debug_toolbar
+
 
 def create_app(settings_override=None):
     """
@@ -23,3 +25,17 @@ def create_app(settings_override=None):
         return {"instance": app.config['WHICHINSTANCE']}
 
     return app
+
+
+def extensions(app):
+    """
+    register each loaded extension to the app
+
+    app: flask app
+    
+    return: None
+    """
+    # useful for when adding front end later
+    debug_toolbar.init_app(app)
+
+    return None 
