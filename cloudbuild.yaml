@@ -2,12 +2,12 @@ steps:
   #build
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 
-          'northamerica-northeast2-docker.pkg.dev/${PROJECT_ID}/point-of-sale-api/image:1', 
+          'northamerica-northeast2-docker.pkg.dev/${PROJECT_ID}/point-of-sale-api/image:${REVISION_ID}', 
           '.' ]
 # push
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push',
-           'northamerica-northeast2-docker.pkg.dev/${PROJECT_ID}/point-of-sale-api/image:1']
+           'northamerica-northeast2-docker.pkg.dev/${PROJECT_ID}/point-of-sale-api/image:${REVISION_ID}']
 
 
 
