@@ -1,4 +1,4 @@
-import pytest 
+import pytest
 
 from app.app import create_app
 
@@ -11,10 +11,7 @@ def app():
 
     return: flask app
     """
-    params = {
-        'DEBUG': False,
-        'TESTING': True,
-    }
+    params = {'DEBUG': False, 'TESTING': True}
 
     _app = create_app(settings_overrite=params)
 
@@ -22,7 +19,7 @@ def app():
     context = _app.app_context()
     context.push()
 
-    yield _app 
+    yield _app
 
     context.pop()
 
