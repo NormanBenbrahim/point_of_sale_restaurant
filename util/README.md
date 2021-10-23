@@ -1,0 +1,1 @@
+# This folder contains a few utility scripts to help with deployments and starting the application

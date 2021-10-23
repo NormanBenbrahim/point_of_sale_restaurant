@@ -17,6 +17,6 @@ def create_app():
         """
         toy example
         """
-        return "<h1>Success</h1>"
+        return app.config['WHICHINSTANCE']
 
     return app

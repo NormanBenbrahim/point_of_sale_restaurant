@@ -1,5 +1,7 @@
 #!/bin/bash
 
+##### build a kubernetes cluster on gcp
+
 # ensure working in the right project
 PROJECT_ID=$(gcloud config get-value project)
 
