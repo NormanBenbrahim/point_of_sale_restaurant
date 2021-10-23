@@ -1,5 +1,7 @@
 #!/bin/bash
 
-# deletes and re-builds each time to emulate prod as much as possible
+# deletes and re-builds each time to emulate production builds as much as possible
 docker-compose rm -f
-docker-compose up --build
+docker-compose down 
+docker-compose build --no-cache
+docker-compose up 

@@ -3,3 +3,4 @@ from config.settings import WHICHINSTANCE
 
 DEBUG = False 
 WHICHINSTANCE = "production config"
+SERVER_NAME = '<insert gcp server address>'
