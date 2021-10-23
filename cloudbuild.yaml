@@ -9,22 +9,4 @@ steps:
     args: ['push',
            'northamerica-northeast2-docker.pkg.dev/${PROJECT_ID}/point-of-sale-api/image:${REVISION_ID}']
 
-
-
-
-###### add later for the cluster
-#steps:
-  # build the container image
-#- name: "gcr.io/cloud-builders/docker"
-#  args: ["build", "-t", "gcr.io/$PROJECT_ID/point-of-sale-api:$SHORT_SHA", "."]
-  # push container image
-#- name: "gcr.io/cloud-builders/docker"
-#  args: ["push", "gcr.io/project-id/image:tag"]
-  # deploy container image to GKE
-#- name: "gcr.io/cloud-builders/gke-deploy"
-#  args:
-#  - run
-#  - --filename=kubernetes-resource-file
-#  - --image=gcr.io/project-id/image:tag
-#  - --location=location
-#  - --cluster=cluster
+# deploy 
