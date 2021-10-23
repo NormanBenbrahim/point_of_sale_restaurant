@@ -1,0 +1,7 @@
+.git
+venv
+tmp
+README.md
+__pycache__
+util
+*.pyc
