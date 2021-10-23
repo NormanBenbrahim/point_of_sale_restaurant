@@ -1,6 +1,27 @@
 steps:
+# build
 - name: 'gcr.io/cloud-builders/docker'
-  args: [ 'build', '-t', 'northamerica-northeast2-docker.pkg.dev/$PROJECT_ID/point-of-sale-api/point-image:$SHORT_SHA', '.' ]
-images:
-- 'northamerica-northeast2-docker.pkg.dev/$PROJECT_ID/point-of-sale-api/point-image:$SHORT_SHA'
+  args: ['build', '-t', 
+         'northamerica-northeast2-docker.pkg.dev/${PROJECT_ID}/point-of-sale-api/image:${SHORT_SHA}', 
+         '.' ]
 
+# push
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', '-image', 
+         'northamerica-northeast2-docker.pkg.dev/${PROJECT_ID}/point-of-sale-api/image:${SHORT_SHA}']
+
+#steps:
+  # build the container image
+#- name: "gcr.io/cloud-builders/docker"
+#  args: ["build", "-t", "gcr.io/$PROJECT_ID/point-of-sale-api:$SHORT_SHA", "."]
+  # push container image
+#- name: "gcr.io/cloud-builders/docker"
+#  args: ["push", "gcr.io/project-id/image:tag"]
+  # deploy container image to GKE
+#- name: "gcr.io/cloud-builders/gke-deploy"
+#  args:
+#  - run
+#  - --filename=kubernetes-resource-file
+#  - --image=gcr.io/project-id/image:tag
+#  - --location=location
+#  - --cluster=cluster
