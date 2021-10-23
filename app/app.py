@@ -17,6 +17,6 @@ def create_app():
         """
         toy example
         """
-        return app.config['WHICHINSTANCE']
+        return {"instance": app.config['WHICHINSTANCE']}
 
     return app
