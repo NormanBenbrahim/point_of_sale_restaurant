@@ -10,7 +10,7 @@ steps:
 images: ['${_IMAGE}']
 
 substitutions:
-  _IMAGE: 'gcr.io/${PROJECT_ID}/${REPO_NAME}:${TAG_NAME:-${SHORT_SHA}}'
+  _IMAGE: 'northamerica-northeast2-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}:${TAG_NAME:-${SHORT_SHA}}'
 
 
 ###### currently working
