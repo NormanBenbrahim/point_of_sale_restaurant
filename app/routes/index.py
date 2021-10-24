@@ -5,6 +5,6 @@ index_route = Blueprint('index-route', __name__)
 @index_route.route('/', methods=['GET'])
 def index():
     """
-    hit the main endpoint for the app
+    hit the main endpoint for the api
     """
     return jsonify({'response': 200})
