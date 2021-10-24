@@ -39,7 +39,6 @@ def create_app(settings_override=None):
         print("There was an error while creating the application: \n" + traceback.format_exc())
 
 
-
 def extensions(app):
     """
     register each loaded extension to the app
