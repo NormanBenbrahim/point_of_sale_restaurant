@@ -5,6 +5,8 @@ from flask import Flask, jsonify
 #from fakefacts.api.v1.user import UserView
 from app.extensions import debug_toolbar, db, jwt, marshmallow
 from app.routes.index import index_route
+from app.routes.menu import menu_route
+from app.routes.orders import orders_route
 
 
 def create_app(settings_override=None):
@@ -24,8 +26,10 @@ def create_app(settings_override=None):
     # add extensions
     extensions(app)
 
-    # add routes, index should go first
+    # add routes, index should always go first
     app.register_blueprint(index_route)
+    app.register_blueprint(menu_route)
+    app.register_blueprint(orders_route)
 
     return app
 
