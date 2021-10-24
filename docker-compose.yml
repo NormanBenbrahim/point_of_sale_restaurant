@@ -1,16 +1,32 @@
 version: "3"
 
 services:
+  # database, use bullseye because it's debian
+  postgres:
+    env_file:
+      - ".env"
+    image: "postgres:14.0-bullseye"
+    ports:
+      - "5432:5432"
+    volumes:
+      - "postgres:/var/lib/postgresql/data"
+
+  # main api
   api:
     build: .
     command: >
       gunicorn -b 0.0.0.0:8000
         --access-logfile -
         --reload
-        "app.app:create_app()"
+        "app.api:create_app()"
+    depends_on:
+      - "postgres"
     env_file:
       - ".env"
     ports:
       - "8000:8000"
     volumes: 
       - ".:/app"
+
+volumes:
+  postgres: {}
