@@ -1,12 +1,35 @@
 from datetime import timedelta 
 import os 
 
+##### helps to debug 
 WHICHINSTANCE = "dev config"
-DEBUG = True
+DEBUG = True # in prod change this
 
+##### where to log
+LOG_DIR = "app/logs"
+
+##### main url
 SERVER_NAME = '0.0.0.0:8000'
-SECRET_KEY = "keyfordev"
 
+
+##### endpoints for routes
+ROUTE_SUCCESS =  '/'
+ROUTE_USER_REGISTER = '/register'
+ROUTE_USER = '/user/<int:user_id>'
+ROUTE_LOGIN = '/login'
+ROUTE_LOGOUT = '/logout'
+
+
+#### common error messages
+USER_ALREADY_EXISTS = "A user with that username already exists."
+CREATED_SUCCESSFULLY = "User created successfully."
+USER_NOT_FOUND = "User not found."
+USER_DELETED = "User deleted."
+INVALID_CREDENTIALS = "Invalid credentials!"
+USER_LOGGED_OUT = "User <id={user_id}> successfully logged out."
+
+
+##### database
 db_uri = 'postgresql://{0}:{1}@postgres:5432/{2}'.format(os.environ['POSTGRES_USER'],
                                                          os.environ['POSTGRES_PASSWORD'],
                                                          os.environ['POSTGRES_DB'])
@@ -17,23 +40,11 @@ SEED_USER_EMAIL = 'dev@local.host'
 SEED_USER_USERNAME = 'dev'
 SEED_USER_PASSWORD = 'password'
 
-# Allow browsers to securely persist auth tokens but also include it in the
-# headers so that other clients can use the auth token too.
-JWT_TOKEN_LOCATION = ['cookies', 'headers']
 
-# Only allow JWT cookies to be sent over https. In production, this should
-# likely be True.
-JWT_COOKIE_SECURE = False
-
-# When set to False, cookies will persist even after the browser is closed.
-JWT_SESSION_COOKIE = False
-
-# Expire tokens in 1 year (this is unrelated to the cookie's duration).
-JWT_ACCESS_TOKEN_EXPIRES = timedelta(weeks=52)
-
-# We are authenticating with this auth token for a number of endpoints.
+##### json web token
+JWT_TOKEN_LOCATION = ['cookies', 'headers'] # allow other clients to access
+JWT_COOKIE_SECURE = False # change to true in production
+JWT_SESSION_COOKIE = False # ccookies persist even after client is closed
+JWT_ACCESS_TOKEN_EXPIRES = timedelta(weeks=52) # token expiry 
 JWT_ACCESS_COOKIE_PATH = '/'
-
-# Enable CSRF double submit protection. See this for a thorough
-# explanation: http://www.redotheweb.com/2015/11/09/api-security.html
-JWT_COOKIE_CSRF_PROTECT = True
+JWT_COOKIE_CSRF_PROTECT = True # enable CSRF double submit protection 
