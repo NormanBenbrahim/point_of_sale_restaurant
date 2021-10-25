@@ -1,6 +1,7 @@
 import traceback
-from flask import Flask, jsonify
-#from flask_jwt_extended import current_user
+from flask import Flask
+from flask_restful import Api
+from flask_jwt_extended import JWTManager
 
 from app.extensions import debug_toolbar, db, jwt, marshmallow
 from app.routes.index import index_route
@@ -32,6 +33,8 @@ def create_app(settings_override=None):
         app.register_blueprint(healthcheck_route)
         app.register_blueprint(menu_route)
         app.register_blueprint(orders_route)
+
+        # 
 
         return app
 
