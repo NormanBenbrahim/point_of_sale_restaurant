@@ -14,8 +14,8 @@ from app.routes.user import UserRegister, UserLogin, User, TokenRefresh, UserLog
 #from app.routes.healthcheck import healthcheck_route
 
 # setup logger
-logging.basicConfig(level=logging.DEBUG, # change to  
-                    format=f'%(asctime)s [%(levelname)s] %(name)s %(threadName)s : %(message)s')
+logging.basicConfig(level=logging.INFO, # change to info in prod, add this to config later
+                    format=f'%(asctime)s [%(levelname)s] %(filename)s (line %(lineno)d) : %(message)s')
 
 def create_app(settings_override=None):
     """
@@ -26,30 +26,35 @@ def create_app(settings_override=None):
         app = Flask(__name__, instance_relative_config=True)
         app.logger.info("Initialized app")
 
+        app.logger.info("Loading settings from config file")
         app.config.from_object('config.settings')
         app.config.from_pyfile('settings.py', silent=True)
-        app.logger.info("Loaded settings")
 
         if settings_override:
             app.config.update(settings_override)
 
         # add extensions
+        app.logger.info("Loading extensions")
         extensions(app)
         
         # make api
+        app.logger.info("Loading flask restful interface")
         api = Api(app)
 
         # create tables
+        app.logger.info("Creating database tables")
         @app.before_first_request
         def create_tables():
             db.create_all()
 
         # check if token blocklisted, best to use redis but sadly i couldn't get it to work
+        app.logger.info("Loading blocklisted tokens")
         @jwt.token_in_blocklist_loader
         def check_if_blocklist(token):
             return token['jti'] in BLOCKLIST
 
         # add routes, '/' first is best practice
+        app.logger.info("Loading restful routes")
         api.add_resource(Success, app.config['ROUTE_SUCCESS'])
 
         # user routes
@@ -61,15 +66,12 @@ def create_app(settings_override=None):
         # menu route
 
 
-        #api.add_resource(User)
-        #app.register_blueprint(menu_route)
-        #app.register_blueprint(orders_route)
-
+        app.logger.info("API ready")
         return app
 
     # base exception to catch everything & spit it out otherwise debugging in docker sucks
     except BaseException:
-        print("There was an error while creating the application: \n" + traceback.format_exc())
+        app.logger.error("There was an error while creating the application: \n" + traceback.format_exc())
 
 
 def extensions(app):

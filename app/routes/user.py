@@ -1,5 +1,5 @@
 from flask_restful import Resource
-from flask import request, current_app
+from flask import request, current_app, json
 from werkzeug.security import safe_str_cmp
 from flask_jwt_extended import (
     create_access_token,
@@ -27,22 +27,35 @@ class UserRegister(Resource):
         f"""
         route to create new user in the database, config contains routenames
         
+        postman request:
         POST {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_USER_REGISTER']}
         """
+        current_app.logger.info(f"Call to route {current_app.config['ROUTE_USER_REGISTER']}")
+
         # handle bad requests
         try:
+            current_app.logger.info(f"Loading user schema {schema.Meta}")
+
             user = schema.load(request)
+            #user = schema.load(json.dumps(request))
+
+            current_app.logger.info(f"Schema: {user}")
         
         except ValidationError as err:
+            current_app.logger.warning(f"Bad request in route: {err}")
+
             return err.messages, 400
 
         # handle duplicate users
         if UserModel.find_by_username(user.username):
+            current_app.logger.warning(f"Duplicate user caught for {user}")
             return {"message": current_app.config['USER_ALREADY_EXISTS']}, 400
         
         # add new user to database
+        current_app.logger.info("Saving user to database")
         user.save_to_db()
 
+        current_app.logger.info(f"Successfully added {user}")
         return {"message": current_app.config['CREATED_SUCCESSFULLY']}, 201
 
 
@@ -58,12 +71,15 @@ class User(Resource):
         postman request:
         GET {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_USER']}
         """
+        current_app.logger.info(f"Call to route {current_app.config['ROUTE_USER']}")
         user = UserModel.find_by_id(user_id)
 
         # handle user not exist
         if not user:
+            current_app.logger.warning(f"User {user.username} not found, caught error")
             return {"message": current_app.config['USER_NOT_FOUND']}, 404
 
+        current_app.logger.info(f"Successfully added {user.username}")
         return schema.dump(user), 200
 
     
@@ -75,6 +91,7 @@ class User(Resource):
         postman request:
         DELETE {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_USER']}
         """
+        current_app.logger.info(f"Call to route {current_app.config['ROUTE_USER']}")
         user = UserModel.find_by_id(user_id)
 
         # handle user not exist

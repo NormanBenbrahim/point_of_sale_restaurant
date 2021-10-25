@@ -1,5 +1,5 @@
 from app.extensions import db
-
+from flask import current_app
 
 class UserModel(db.Model):
     """
@@ -11,11 +11,14 @@ class UserModel(db.Model):
     username = db.Column(db.String(80), nullable=False, unique=True)
     password = db.Column(db.String(80), nullable=False)
 
+
     @classmethod
     def find_by_username(cls, username: str) -> "UserModel":
         """
         utility to search for a user, see routes for usage
         """
+        current_app.logger.info("find_by_username method in user models called")
+        
         return cls.query.filter_by(username=username).first()
 
 
@@ -24,6 +27,8 @@ class UserModel(db.Model):
         """
         utility to search for user, see routes for usage
         """
+        current_app.logger.info("find_by_id method in user models called")
+        
         return cls.query.filter_by(id=_id).first()
 
 
@@ -31,13 +36,21 @@ class UserModel(db.Model):
         """
         save user to the database
         """
+        current_app.logger.info("Adding user to database")
+        
         db.session.add(self)
         db.session.commit()
+
+        current_app.logger.info("Successfully added user")
 
 
     def delete_from_db(self) -> None:
         """
         delete user from the database
         """
+        current_app.logger.info("Deleting user from database")
+
         db.session.delete(self)
         db.session.commit()
+
+        current_app.logger.info("Successfully deleted user")
