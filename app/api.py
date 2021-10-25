@@ -3,11 +3,12 @@ from flask import Flask
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 
-from app.extensions import debug_toolbar, db, jwt, marshmallow
-from app.routes.index import index_route
-from app.routes.menu import menu_route
-from app.routes.orders import orders_route
-from app.routes.healthcheck import healthcheck_route
+from app.extensions import db, jwt, marshmallow
+from app.routes.success import Success
+#from app.routes.index import index_route
+#from app.routes.menu import menu_route
+#from app.routes.orders import orders_route
+#from app.routes.healthcheck import healthcheck_route
 
 
 def create_app(settings_override=None):
@@ -27,12 +28,14 @@ def create_app(settings_override=None):
 
         # add extensions
         extensions(app)
+        
+        # make api
+        api = Api(app)
 
         # add routes, index should always go first
-        app.register_blueprint(index_route)
-        app.register_blueprint(healthcheck_route)
-        app.register_blueprint(menu_route)
-        app.register_blueprint(orders_route)
+        api.add_resource(Success, "/")
+        #app.register_blueprint(menu_route)
+        #app.register_blueprint(orders_route)
 
         # 
 
@@ -50,7 +53,6 @@ def extensions(app):
     
     return: None
     """
-    debug_toolbar.init_app(app)
     #jwt.init_app(app)
     db.init_app(app)
     marshmallow.init_app(app)
