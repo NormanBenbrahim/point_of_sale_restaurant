@@ -68,6 +68,7 @@ def create_app(settings_override=None):
         api.add_resource(UserRegister, app.config['ROUTE_USER_REGISTER'])
         api.add_resource(User, app.config['ROUTE_USER'])
         api.add_resource(UserLogout, app.config['ROUTE_LOGOUT'])
+        api.add_resource(TokenRefresh, app.config['ROUTE_REFRESH'])
 
         # orders route
 
@@ -92,37 +93,6 @@ def extensions(app):
 
     return None 
 
-# def jwt_callbacks():
-#     """
-#     Set up custom behavior for JWT based authentication.
-
-#     :return: None
-#     """
-#     @jwt.user_loader_callback_loader
-#     def user_loader_callback(identity):
-#         return User.query.filter((User.username == identity)).first()
-
-#     @jwt.unauthorized_loader
-#     def jwt_unauthorized_callback(self):
-#         response = {
-#             'error': {
-#                 'message': 'Your auth token or CSRF token are missing'
-#             }
-#         }
-
-#         return jsonify(response), 401
-
-#     @jwt.expired_token_loader
-#     def jwt_expired_token_callback():
-#         response = {
-#             'error': {
-#                 'message': 'Your auth token has expired'
-#             }
-#         }
-
-#         return jsonify(response), 401
-
-#     return None
 
 if __name__ == '__main__':
     app = create_app()

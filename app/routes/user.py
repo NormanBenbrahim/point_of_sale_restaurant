@@ -142,22 +142,22 @@ class UserLogin(Resource):
                 current_app.logger.info(f"Defining session and passing to the load session")
                 session = scoped_session(sessionmaker(bind=engine))
                 user_data = schema.load(request.get_json(), session=session)
-                
-                #user_json = request.get_json()
-                #user_data = schema.load(user_json)
             
             except ValidationError as err:
                 current_app.logger.warning("Loading user schema")
                 return err.messages, 400
 
             # load user
+            current_app.logger.info(f"Loading user")
             user = UserModel.find_by_username(user_data.username)
 
             # handle passwords securely & give user their tokens
+            current_app.logger.info(f"Creating user tokens")
             if user and safe_str_cmp(user_data.password, user.password):
                 access_token = create_access_token(identity=user.id, fresh=True)
                 refresh_token = create_refresh_token(user.id)
                 
+                current_app.logger.info(f"User '{user_data.username}' logged in")
                 return {"access_token": access_token, "refresh_token": refresh_token}, 200
 
             # bad/no tokens
@@ -179,15 +179,19 @@ class UserLogout(Resource):
         so chose to store in extensions
 
         postman request:
-        POST {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_LOGIN']}        
+        POST {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_LOGOUT']}        
         """
-        try: 
+        try:
+            current_app.logger.info(f"POST call to route {current_app.config['ROUTE_LOGOUT']}")
+            
             # get current json web token and add to blocklist
+            current_app.logger.info("Adding current user token to blocklist")
             jti = get_jwt()['jti']
             user_id = get_jwt_identity()
             BLOCKLIST.add(jti)
             
             # next request with the token won't work
+            current_app.logger.info("User logged out")
             return {"message": current_app.config['MSG_USER_LOGGED_OUT'].format(user_id)}, 200
 
         except BaseException as err:
@@ -201,13 +205,24 @@ class TokenRefresh(Resource):
     @classmethod
     @jwt_required(refresh=True)
     def post(cls):
-        """
-        utility to refresh json web tokens
+        f"""
+        route to refresh json web tokens
+
+        postman request:
+        POST {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_REFRESH']} 
+        
+        HEADERS
+        KEY=Authorization 
+        VALUE=Bearer <token>
         """
         try:
+            current_app.logger.info(f"POST call to route {current_app.config['ROUTE_REFRESH']}")
+
+            current_app.logger.info(f"Creating new user token")
             current_user = get_jwt_identity()
             new_token = create_access_token(identity=current_user, fresh=False)
             
+            current_app.logger.info("Token refreshed")
             return {"access_token": new_token}, 200
 
         except BaseException as err:

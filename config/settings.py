@@ -18,6 +18,7 @@ ROUTE_USER_REGISTER = '/register'
 ROUTE_USER = '/user/<int:user_id>'
 ROUTE_LOGIN = '/login'
 ROUTE_LOGOUT = '/logout'
+ROUTE_REFRESH = '/refresh'
 
 
 #### common messages
@@ -44,8 +45,8 @@ SEED_USER_PASSWORD = 'password'
 ##### jwt settings, chose to use HS* algorithm as it's easier to implement
 JWT_TOKEN_LOCATION = ['cookies', 'headers'] # allow other clients to access
 JWT_SECRET_KEY = os.urandom(16) # initialize api's secret key for HS* algorithm
-JWT_COOKIE_SECURE = False # change to true in production
-JWT_SESSION_COOKIE = False # ccookies persist even after client is closed
+JWT_COOKIE_SECURE = True # change to true in production
+JWT_SESSION_COOKIE = True # ccookies persist even after client is closed
 JWT_ACCESS_TOKEN_EXPIRES = timedelta(weeks=52) # token expiry 
 JWT_ACCESS_COOKIE_PATH = '/'
 JWT_COOKIE_CSRF_PROTECT = True # enable CSRF double submit protection 
