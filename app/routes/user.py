@@ -28,7 +28,7 @@ class UserRegister(Resource):
     @classmethod
     def post(cls):
         f"""
-        route to create new user in the database, config contains routenames
+        route to create new user in the database
         
         postman request:
         POST {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_USER_REGISTER']}
@@ -40,13 +40,11 @@ class UserRegister(Resource):
             current_app.logger.info(f"Defining session and passing to the load session")
             session = scoped_session(sessionmaker(bind=engine))
             user = schema.load(request.get_json(), session=session)
-            #user = schema.load(session)
 
             # handle duplicate users
             current_app.logger.info("Checking if user is duplicate")
             if UserModel.find_by_username(user.username):
                 current_app.logger.warning(f"Duplicate user caught for {user.username}, didn't create")
-                
                 return {"message": current_app.config['MSG_USER_ALREADY_EXISTS']}, 400
             
             # add new user to database
@@ -67,7 +65,7 @@ class User(Resource):
     @classmethod
     def get(cls, user_id: int):
         f"""
-        route to look up a user, config contains routenames
+        route to look up a user
         
         postman request:
         GET {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_USER']}
@@ -87,7 +85,7 @@ class User(Resource):
             return schema.dump(user), 200
 
         except BaseException as err:
-            current_app.logger.error(f"There was an {err} error in the ")
+            current_app.logger.error(f"There was an {err} error")
 
     
     @classmethod

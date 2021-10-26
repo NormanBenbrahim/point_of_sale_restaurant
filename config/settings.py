@@ -1,12 +1,13 @@
 from datetime import timedelta 
 import os 
 
+
 ##### helps to debug 
 WHICHINSTANCE = "dev config"
 DEBUG = True # in prod change this
 
-##### where to log
-LOG_DIR = "app/logs"
+##### cors
+CORS_HEADER = 'Content-Type'
 
 ##### main url
 SERVER_NAME = '0.0.0.0:8000'
@@ -19,15 +20,23 @@ ROUTE_USER = '/user/<int:user_id>'
 ROUTE_LOGIN = '/login'
 ROUTE_LOGOUT = '/logout'
 ROUTE_REFRESH = '/refresh'
+ROUTE_MENU = '/menu/<string:name>'
+ROUTE_MENU_LIST = '/menus'
 
 
 #### common messages
-MSG_USER_ALREADY_EXISTS = "A user with that username already exists."
-MSG_CREATED_SUCCESSFULLY = "User created successfully."
+MSG_USER_ALREADY_EXISTS = "A user with that username already exists"
+MSG_CREATED_SUCCESSFULLY = "User created successfully"
 MSG_USER_NOT_FOUND = "User not found."
-MSG_USER_DELETED = "User deleted."
+MSG_USER_DELETED = "User deleted"
 MSG_INVALID_CREDENTIALS = "Invalid credentials!"
-MSG_USER_LOGGED_OUT = "User <id={user_id}> successfully logged out."
+MSG_USER_LOGGED_OUT = "User <id={user_id}> successfully logged out"
+MSG_NAME_ALREADY_EXISTS = "An item with name '{}' already exists"
+MSG_ERROR_INSERTING = "An error occurred while inserting the menu"
+MSG_MENU_NOT_FOUND = "Menu not found."
+MSG_MENU_DELETED = "Menu deleted"
+MSG_MENU_ADDED = "Menu added"
+MSG_MENU_UPDATED = "Menu updated"
 
 
 ##### database
@@ -45,4 +54,4 @@ JWT_COOKIE_SECURE = True # change to true in production
 JWT_SESSION_COOKIE = True # ccookies persist even after client is closed
 JWT_ACCESS_TOKEN_EXPIRES = timedelta(weeks=52) # token expiry 
 JWT_ACCESS_COOKIE_PATH = '/'
-JWT_COOKIE_CSRF_PROTECT = True # enable CSRF double submit protection 
+JWT_COOKIE_CSRF_PROTECT = True # enable CSRF double submit protection, not sure if necessary

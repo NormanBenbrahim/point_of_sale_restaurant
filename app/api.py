@@ -8,16 +8,14 @@ from flask_cors import CORS
 from app.extensions import db, jwt, marshmallow
 from app.routes.success import Success
 from app.routes.user import UserRegister, UserLogin, User, TokenRefresh, UserLogout
+from app.routes.menu import Menu, MenuList
 from app.extensions import BLOCKLIST
-#from app.routes.user import UserRegister, UserLogin, User, TokenRefresh, UserLogout
-#from app.routes.index import index_route
-#from app.routes.menu import menu_route
-#from app.routes.orders import orders_route
-#from app.routes.healthcheck import healthcheck_route
+
 
 # setup logger
 logging.basicConfig(level=logging.INFO, # change to info in prod, add this to config later
                     format=f'%(asctime)s [%(levelname)s] %(pathname)s (line %(lineno)d) : %(message)s')
+
 
 def create_app(settings_override=None):
     """
@@ -28,7 +26,7 @@ def create_app(settings_override=None):
         app = Flask(__name__, instance_relative_config=True)
         app.logger.info("Initializing app")
 
-        # useful when hooking up the api to a front end
+        # useful when hooking up the api to a front end or custom ajax later
         app.logger.info("Adding CORS")
         CORS(app)
 
@@ -70,17 +68,19 @@ def create_app(settings_override=None):
         api.add_resource(UserLogout, app.config['ROUTE_LOGOUT'])
         api.add_resource(TokenRefresh, app.config['ROUTE_REFRESH'])
 
-        # orders route
+        # menu routes
+        api.add_resource(Menu, app.config['ROUTE_MENU'])
+        api.add_resource(MenuList, app.config['ROUTE_MENU_LIST'])
 
-        # menu route
+        # orders route
 
 
         app.logger.info("API ready")
         return app
 
-    # base exception to catch everything & spit it out otherwise debugging in docker sucks
-    except BaseException as err:
-        app.logger.error(f"There was an {err} error while creating the application: \n" + traceback.format_exc())
+    # base exception to catch everything
+    except BaseException:
+        app.logger.error(f"There was an error: {traceback.format_exc()}")
 
 
 def extensions(app):
@@ -95,5 +95,9 @@ def extensions(app):
 
 
 if __name__ == '__main__':
-    app = create_app()
-    app.run(port=8080, debug=True)
+    try:
+        app = create_app()
+        app.run(port=8080, debug=True)
+
+    except BaseException:
+        print(f"There was an error while creating the application: \n" + traceback.format_exc())
