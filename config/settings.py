@@ -20,13 +20,13 @@ ROUTE_LOGIN = '/login'
 ROUTE_LOGOUT = '/logout'
 
 
-#### common error messages
-USER_ALREADY_EXISTS = "A user with that username already exists."
-CREATED_SUCCESSFULLY = "User created successfully."
-USER_NOT_FOUND = "User not found."
-USER_DELETED = "User deleted."
-INVALID_CREDENTIALS = "Invalid credentials!"
-USER_LOGGED_OUT = "User <id={user_id}> successfully logged out."
+#### common messages
+MSG_USER_ALREADY_EXISTS = "A user with that username already exists."
+MSG_CREATED_SUCCESSFULLY = "User created successfully."
+MSG_USER_NOT_FOUND = "User not found."
+MSG_USER_DELETED = "User deleted."
+MSG_INVALID_CREDENTIALS = "Invalid credentials!"
+MSG_USER_LOGGED_OUT = "User <id={user_id}> successfully logged out."
 
 
 ##### database
@@ -41,8 +41,9 @@ SEED_USER_USERNAME = 'dev'
 SEED_USER_PASSWORD = 'password'
 
 
-##### json web token
+##### jwt settings, chose to use HS* algorithm as it's easier to implement
 JWT_TOKEN_LOCATION = ['cookies', 'headers'] # allow other clients to access
+JWT_SECRET_KEY = os.urandom(16) # initialize api's secret key for HS* algorithm
 JWT_COOKIE_SECURE = False # change to true in production
 JWT_SESSION_COOKIE = False # ccookies persist even after client is closed
 JWT_ACCESS_TOKEN_EXPIRES = timedelta(weeks=52) # token expiry 

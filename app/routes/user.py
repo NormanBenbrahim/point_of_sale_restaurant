@@ -1,5 +1,7 @@
 from flask_restful import Resource
-from flask import request, current_app, json
+from flask import request, current_app
+from sqlalchemy import engine
+from sqlalchemy.orm import scoped_session, sessionmaker
 from werkzeug.security import safe_str_cmp
 from flask_jwt_extended import (
     create_access_token,
@@ -9,6 +11,7 @@ from flask_jwt_extended import (
     get_jwt,
 )
 from marshmallow import ValidationError
+
 from app.models.user import UserModel
 from app.schemas.user import UserSchema
 from app.extensions import BLOCKLIST
@@ -30,33 +33,31 @@ class UserRegister(Resource):
         postman request:
         POST {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_USER_REGISTER']}
         """
-        current_app.logger.info(f"Call to route {current_app.config['ROUTE_USER_REGISTER']}")
-
-        # handle bad requests
         try:
-            current_app.logger.info(f"Loading user schema {schema.Meta}")
+            current_app.logger.info(f"POST Call to route {current_app.config['ROUTE_USER_REGISTER']}")
 
-            user = schema.load(request)
-            #user = schema.load(json.dumps(request))
+            # define session
+            current_app.logger.info(f"Defining session and passing to the load session")
+            session = scoped_session(sessionmaker(bind=engine))
+            user = schema.load(request.get_json(), session=session)
+            #user = schema.load(session)
 
-            current_app.logger.info(f"Schema: {user}")
-        
-        except ValidationError as err:
-            current_app.logger.warning(f"Bad request in route: {err}")
+            # handle duplicate users
+            current_app.logger.info("Checking if user is duplicate")
+            if UserModel.find_by_username(user.username):
+                current_app.logger.warning(f"Duplicate user caught for {user.username}, didn't create")
+                
+                return {"message": current_app.config['MSG_USER_ALREADY_EXISTS']}, 400
+            
+            # add new user to database
+            current_app.logger.info("Saving user to database")
+            UserModel.save_to_db(user)
 
-            return err.messages, 400
+            current_app.logger.info(f"Successfully added {user}")
+            return {"message": current_app.config['MSG_CREATED_SUCCESSFULLY']}, 201
 
-        # handle duplicate users
-        if UserModel.find_by_username(user.username):
-            current_app.logger.warning(f"Duplicate user caught for {user}")
-            return {"message": current_app.config['USER_ALREADY_EXISTS']}, 400
-        
-        # add new user to database
-        current_app.logger.info("Saving user to database")
-        user.save_to_db()
-
-        current_app.logger.info(f"Successfully added {user}")
-        return {"message": current_app.config['CREATED_SUCCESSFULLY']}, 201
+        except BaseException as err:
+            current_app.logger.error(f"There was an {err} error")
 
 
 class User(Resource):
@@ -71,16 +72,22 @@ class User(Resource):
         postman request:
         GET {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_USER']}
         """
-        current_app.logger.info(f"Call to route {current_app.config['ROUTE_USER']}")
-        user = UserModel.find_by_id(user_id)
+        try:
+            current_app.logger.info(f"GET Call to route {current_app.config['ROUTE_USER']}")
 
-        # handle user not exist
-        if not user:
-            current_app.logger.warning(f"User {user.username} not found, caught error")
-            return {"message": current_app.config['USER_NOT_FOUND']}, 404
+            current_app.logger.info("Looking or user in database")
+            user = UserModel.find_by_id(user_id)
 
-        current_app.logger.info(f"Successfully added {user.username}")
-        return schema.dump(user), 200
+            # handle user not exist
+            if not user:
+                current_app.logger.warning(f"User {user.username} not found, caught error")
+                return {"message": current_app.config['MSG_USER_NOT_FOUND']}, 404
+
+            current_app.logger.info(f"User '{user.username}' in '{UserModel.__tablename__}' database")
+            return schema.dump(user), 200
+
+        except BaseException as err:
+            current_app.logger.error(f"There was an {err} error in the ")
 
     
     @classmethod
@@ -91,17 +98,26 @@ class User(Resource):
         postman request:
         DELETE {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_USER']}
         """
-        current_app.logger.info(f"Call to route {current_app.config['ROUTE_USER']}")
-        user = UserModel.find_by_id(user_id)
+        try:
+            current_app.logger.info(f"DELETE Call to route {current_app.config['ROUTE_USER']}")
 
-        # handle user not exist
-        if not user:
-            return{"message": current_app.config['USER_NOT_FOUND']}, 404
+            current_app.logger.info("Looking for user")
+            user = UserModel.find_by_id(user_id)
 
-        # delete user
-        user.delete_from_db()
+            # handle user not exist
+            if not user:
+                current_app.logger.warning(f"User {user.username} not found, caught error")
+                return{"message": current_app.config['MSG_USER_NOT_FOUND']}, 404
 
-        return {"message": current_app.config['USER_DELETED']}, 200
+            # delete user
+            current_app.logger.info("Deleting user")
+            user.delete_from_db()
+
+            current_app.logger.info(f"Successfully deleted {user.username}")
+            return {"message": current_app.config['MSG_USER_DELETED']}, 200
+
+        except BaseException as err:
+            current_app.logger.error(f"There was an {err} error")
 
 
 class UserLogin(Resource):
@@ -116,26 +132,39 @@ class UserLogin(Resource):
         postman request:
         POST {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_LOGIN']}
         """
-        # handle user not exist
         try:
-            user_json = request.get_json()
-            user_data = schema.load(user_json)
-        
-        except ValidationError as err:
-            return err.messages, 400
+            current_app.logger.info(f"POST call to route {current_app.config['ROUTE_LOGIN']}")
+            # handle user not exist separately to not break the code 
+            try:
+                current_app.logger.info("Loading user schema from web token")
 
-        # load user
-        user = UserModel.find_by_username(user_data.username)
-
-        # handle passwords securely & give user their tokens
-        if user and safe_str_cmp(user_data.password, user.password):
-            access_token = create_access_token(identity=user.id, fresh=True)
-            refresh_token = create_refresh_token(user.id)
+                # define session
+                current_app.logger.info(f"Defining session and passing to the load session")
+                session = scoped_session(sessionmaker(bind=engine))
+                user_data = schema.load(request.get_json(), session=session)
+                
+                #user_json = request.get_json()
+                #user_data = schema.load(user_json)
             
-            return {"access_token": access_token, "refresh_token": refresh_token}, 200
+            except ValidationError as err:
+                current_app.logger.warning("Loading user schema")
+                return err.messages, 400
 
-        # bad/no tokens
-        return {"message": current_app.config['INVALID_CREDENTIALS']}, 401
+            # load user
+            user = UserModel.find_by_username(user_data.username)
+
+            # handle passwords securely & give user their tokens
+            if user and safe_str_cmp(user_data.password, user.password):
+                access_token = create_access_token(identity=user.id, fresh=True)
+                refresh_token = create_refresh_token(user.id)
+                
+                return {"access_token": access_token, "refresh_token": refresh_token}, 200
+
+            # bad/no tokens
+            return {"message": current_app.config['MSG_INVALID_CREDENTIALS']}, 401
+        
+        except BaseException as err:
+            current_app.logger.error(f"There was an {err} error")
 
 
 class UserLogout(Resource):
@@ -152,13 +181,17 @@ class UserLogout(Resource):
         postman request:
         POST {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_LOGIN']}        
         """
-        # get current json web token and add to blocklist
-        jti = get_jwt()['jti']
-        user_id = get_jwt_identity()
-        BLOCKLIST.add(jti)
-        
-        # next request with the token won't work
-        return {"message": current_app.config['USER_LOGGED_OUT'].format(user_id)}, 200   
+        try: 
+            # get current json web token and add to blocklist
+            jti = get_jwt()['jti']
+            user_id = get_jwt_identity()
+            BLOCKLIST.add(jti)
+            
+            # next request with the token won't work
+            return {"message": current_app.config['MSG_USER_LOGGED_OUT'].format(user_id)}, 200
+
+        except BaseException as err:
+            current_app.logger.error(f"There was an {err} error")
 
 
 class TokenRefresh(Resource):
@@ -171,7 +204,11 @@ class TokenRefresh(Resource):
         """
         utility to refresh json web tokens
         """
-        current_user = get_jwt_identity()
-        new_token = create_access_token(identity=current_user, fresh=False)
-        
-        return {"access_token": new_token}, 200
+        try:
+            current_user = get_jwt_identity()
+            new_token = create_access_token(identity=current_user, fresh=False)
+            
+            return {"access_token": new_token}, 200
+
+        except BaseException as err:
+            current_app.logger.error(f"There was an {err} error")

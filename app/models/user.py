@@ -17,7 +17,7 @@ class UserModel(db.Model):
         """
         utility to search for a user, see routes for usage
         """
-        current_app.logger.info("find_by_username method in user models called")
+        current_app.logger.info("find_by_username subroutine called")
         
         return cls.query.filter_by(username=username).first()
 
@@ -27,7 +27,7 @@ class UserModel(db.Model):
         """
         utility to search for user, see routes for usage
         """
-        current_app.logger.info("find_by_id method in user models called")
+        current_app.logger.info("find_by_id subroutine called")
         
         return cls.query.filter_by(id=_id).first()
 

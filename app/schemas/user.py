@@ -1,14 +1,18 @@
-from app.extensions import marshmallow
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+
 from app.models.user import UserModel
-from flask import current_app
 
 
-class UserSchema(marshmallow.Schema):
+class UserSchema(SQLAlchemyAutoSchema):
     """
     schema for users to login
     """
     
     class Meta:
+        """
+        get sqlalchemy to autofill the schema fields
+        """
         model = UserModel
-        load_only = ("password")
-        dump_only = ("id")
+        include_relationships = True
+        load_instance = True
+        #include_fk = True

@@ -2,11 +2,13 @@ import traceback
 import logging
 from flask import Flask
 from flask_restful import Api
+from flask_cors import CORS
 #from flask_jwt_extended import JWTManager
 
 from app.extensions import db, jwt, marshmallow
 from app.routes.success import Success
 from app.routes.user import UserRegister, UserLogin, User, TokenRefresh, UserLogout
+from app.extensions import BLOCKLIST
 #from app.routes.user import UserRegister, UserLogin, User, TokenRefresh, UserLogout
 #from app.routes.index import index_route
 #from app.routes.menu import menu_route
@@ -15,7 +17,7 @@ from app.routes.user import UserRegister, UserLogin, User, TokenRefresh, UserLog
 
 # setup logger
 logging.basicConfig(level=logging.INFO, # change to info in prod, add this to config later
-                    format=f'%(asctime)s [%(levelname)s] %(filename)s (line %(lineno)d) : %(message)s')
+                    format=f'%(asctime)s [%(levelname)s] %(pathname)s (line %(lineno)d) : %(message)s')
 
 def create_app(settings_override=None):
     """
@@ -24,7 +26,11 @@ def create_app(settings_override=None):
     try:
         # initialize app & define config scopes
         app = Flask(__name__, instance_relative_config=True)
-        app.logger.info("Initialized app")
+        app.logger.info("Initializing app")
+
+        # useful when hooking up the api to a front end
+        app.logger.info("Adding CORS")
+        CORS(app)
 
         app.logger.info("Loading settings from config file")
         app.config.from_object('config.settings')
@@ -38,7 +44,7 @@ def create_app(settings_override=None):
         extensions(app)
         
         # make api
-        app.logger.info("Loading flask restful interface")
+        app.logger.info("Loading restful interface")
         api = Api(app)
 
         # create tables
@@ -60,6 +66,8 @@ def create_app(settings_override=None):
         # user routes
         api.add_resource(UserLogin, app.config['ROUTE_LOGIN'])
         api.add_resource(UserRegister, app.config['ROUTE_USER_REGISTER'])
+        api.add_resource(User, app.config['ROUTE_USER'])
+        api.add_resource(UserLogout, app.config['ROUTE_LOGOUT'])
 
         # orders route
 
@@ -70,8 +78,8 @@ def create_app(settings_override=None):
         return app
 
     # base exception to catch everything & spit it out otherwise debugging in docker sucks
-    except BaseException:
-        app.logger.error("There was an error while creating the application: \n" + traceback.format_exc())
+    except BaseException as err:
+        app.logger.error(f"There was an {err} error while creating the application: \n" + traceback.format_exc())
 
 
 def extensions(app):
