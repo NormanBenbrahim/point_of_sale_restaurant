@@ -1,17 +1,18 @@
 import pytest
 
-from app.app import create_app
+from app.api import create_app
 
 
 @pytest.fixture(scope='session')
 def app():
     """
-    setup test for flask app
-
-
-    return: flask app
+    setup tests for api
     """
-    params = {'DEBUG': False, 'TESTING': True}
+
+    params = {
+        'DEBUG': False, 
+        'TESTING': True
+    }
 
     _app = create_app(settings_overrite=params)
 

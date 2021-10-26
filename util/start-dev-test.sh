@@ -8,4 +8,4 @@ docker-compose exec api py.test --cov-report term-missing app
 
 ### linting
 echo "flake8 linting:"
-docker-compose exec api flake8 .
+#docker-compose exec api flake8 .
