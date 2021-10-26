@@ -37,10 +37,6 @@ db_uri = 'postgresql://{0}:{1}@postgres:5432/{2}'.format(os.environ['POSTGRES_US
 SQLALCHEMY_DATABASE_URI = db_uri
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-SEED_USER_EMAIL = 'dev@local.host'
-SEED_USER_USERNAME = 'dev'
-SEED_USER_PASSWORD = 'password'
-
 
 ##### jwt settings, chose to use HS* algorithm as it's easier to implement
 JWT_TOKEN_LOCATION = ['cookies', 'headers'] # allow other clients to access
