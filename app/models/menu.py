@@ -77,7 +77,7 @@ class MenuModel(db.Model):
         utility to search for menus by id  in the database
         """
         current_app.logger.info("find_by_id utility called inside menu models")
-        return cls.query.filter_by(id=_id)
+        return cls.query.filter_by(id=_id).first()
 
 
     @classmethod

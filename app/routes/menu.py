@@ -33,7 +33,7 @@ class Menu(Resource):
             current_app.logger.info(f"Looking for menu in database")
             menu = MenuModel.find_by_id(id)
 
-            if menu is not None:
+            if menu is None:
                 current_app.logger.info(f"Menu '{id}' in '{MenuModel.__tablename__}' database")
                 return menu_schema.dump(menu), 200
             
