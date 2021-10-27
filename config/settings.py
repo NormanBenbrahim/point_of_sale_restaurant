@@ -20,7 +20,7 @@ ROUTE_USER = '/user/<int:user_id>'
 ROUTE_LOGIN = '/login'
 ROUTE_LOGOUT = '/logout'
 ROUTE_REFRESH = '/refresh'
-ROUTE_MENU = '/menu/<string:name>'
+ROUTE_MENU = '/menu/<int:id>'
 ROUTE_MENU_LIST = '/menus'
 
 

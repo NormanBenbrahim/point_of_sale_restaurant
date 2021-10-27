@@ -62,20 +62,30 @@ class MenuModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False, unique=True)
-    description = db.Column(db.String(300), nullable=False)
+    description = db.Column(db.String(80), nullable=False, unique=True)
     price = db.Column(db.Float(precision=2), nullable=False)
     items = db.Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
 
-    menu_id = db.Column(db.Integer, db.ForeignKey("menus.id"), nullable=False)
-    menu = db.relationship("MenuModel")
+    # link the menu and orders tables' ids together for easy lookup
+    #order_id = db.Column(db.Integer, db.ForeignKey("orders.id"), nullable=False)
+    #order = db.relationship("OrderModel")
 
 
     @classmethod
-    def find_by_id(cls, name: str) -> "MenuModel":
+    def find_by_id(cls, _id: int) -> "MenuModel":
+        """
+        utility to search for menus by id  in the database
+        """
+        current_app.logger.info("find_by_id utility called inside menu models")
+        return cls.query.filter_by(id=_id)
+
+
+    @classmethod
+    def find_by_name(cls, name: str) -> "MenuModel":
         """
         utility to search for menus by name in the database
         """
-        current_app.logger.info("find_by_name utility called")
+        current_app.logger.info("find_by_name utility called inside menu models")
         return cls.query.filter_by(name=name).first()
 
 
@@ -84,7 +94,7 @@ class MenuModel(db.Model):
         """
         utility to find all menus in the database
         """
-        current_app.logger.info("find_all utility called")
+        current_app.logger.info("find_all utility called inside menu models")
         return cls.query.all()
 
 
@@ -104,6 +114,7 @@ class MenuModel(db.Model):
         current_app.logger.info("Deleting from database")
         db.session.delete(self)
         db.session.commit()
+
 
     def update_from_db(self, **kwargs) -> None:
         """
