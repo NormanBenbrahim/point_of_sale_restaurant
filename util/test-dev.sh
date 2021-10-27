@@ -1,9 +1,11 @@
 #!/bin/bash
 
 ### start tests on the api
+echo "Tests:"
 docker-compose exec api py.test app/tests
 
 ### test coverage
+echo "\nTest coverage:"
 docker-compose exec api py.test --cov-report term-missing app
 
 ### linting
