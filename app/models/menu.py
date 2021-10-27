@@ -84,7 +84,7 @@ class MenuModel(db.Model):
 
     # items into general purpose mutable dict & parse errors in route
     #items = db.Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
-    items = db.relationship("ItemsModel", backref='items', lazy="dynamic")
+    items = db.relationship("ItemsModel", backref='menus', lazy="dynamic")
 
     # link the menu and orders tables' ids together for easy lookup
     #order_id = db.Column(db.Integer, db.ForeignKey("orders.id"), nullable=False)
@@ -92,13 +92,13 @@ class MenuModel(db.Model):
 
 
     @classmethod
-    def find_by_id(cls, _id: int) -> "MenuModel":
+    def find_by_id(cls, menu_id: int) -> "MenuModel":
         """
         utility to search for menus by id in the database
         """
         try:
             current_app.logger.info("find_by_id utility called inside menu models")
-            return cls.query.filter_by(id=_id).first()
+            return cls.query.filter_by(id=menu_id).first()
 
         except BaseException:
             current_app.logger.error(f"There was an error: {traceback.format_exc()}")
@@ -158,8 +158,8 @@ class ItemsModel(db.Model):
     """
     __tablename__ = "items_table"
 
-    id = db.Column(db.Integer, primary_key=True)
-    items_id = db.Column(MutableDict.as_mutable(JSONEncodedDict), db.ForeignKey(MenuModel.id))
+    items_id = db.Column(db.Integer, db.ForeignKey(MenuModel.id), primary_key=True)
+    items = db.Column(MutableDict.as_mutable(JSONEncodedDict))
 
     @classmethod
     def find_by_id(cls, _id2: int) -> "ItemsModel":

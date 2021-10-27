@@ -21,10 +21,10 @@ ROUTE_USER = '/user/<int:user_id>'
 ROUTE_LOGIN = '/login'
 ROUTE_LOGOUT = '/logout'
 ROUTE_REFRESH = '/refresh'
-ROUTE_MENU = '/menu/<int:id>'
+ROUTE_MENU = '/menu/<int:menu_id>'
 ROUTE_MENU_LIST = '/allmenus'
-ROUTE_MENU_ITEM = '/menu/<int:id>/<int:menuid>'
-ROUTE_MENU_ITEM_LIST = '/menu/<int:id>/allitems'
+ROUTE_MENU_ITEM = '/menu/<int:menu_id>/<int:item_id>'
+ROUTE_MENU_ITEM_LIST = '/menu/<int:menu_id>/allitems'
 
 
 #### common messages
@@ -33,7 +33,7 @@ MSG_CREATED_SUCCESSFULLY = "User created successfully"
 MSG_USER_NOT_FOUND = "User not found."
 MSG_USER_DELETED = "User deleted"
 MSG_INVALID_CREDENTIALS = "Invalid credentials!"
-MSG_USER_LOGGED_OUT = "User <id={user_id}> successfully logged out"
+MSG_USER_LOGGED_OUT = "User successfully logged out"
 MSG_MENU_ALREADY_EXISTS = "An item with name '{}' already exists"
 MSG_ERROR_INSERTING = "An error occurred while inserting the menu"
 MSG_MENU_NOT_FOUND = "Menu not found"
@@ -52,7 +52,7 @@ SQLALCHEMY_DATABASE_URI = db_uri
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
-##### jwt settings, chose to use HS* algorithm as it's easier to implement
+##### jwt settings, couldn't get this to work
 JWT_TOKEN_LOCATION = ['cookies', 'headers'] # allow other clients to access
 JWT_SECRET_KEY = os.urandom(16) # initialize api's secret key for HS* algorithm
 JWT_COOKIE_SECURE = False # change to true in production

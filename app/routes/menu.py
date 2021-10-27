@@ -1,6 +1,6 @@
 import traceback
 from flask_restful import Resource
-from flask import config, request, current_app
+from flask import request, current_app
 from sqlalchemy import engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from flask_jwt_extended import jwt_required
@@ -8,7 +8,7 @@ from marshmallow import ValidationError
 
 from app.models.menu import MenuModel
 from app.schemas.menu import ItemSchema, MenuSchema
-#from app.extensions import BLOCKLIST
+from app.extensions import jwt
 
 
 # initiate schemas
@@ -22,6 +22,7 @@ class Menu(Resource):
     restful interface for menu
     """
     @classmethod
+    #@jwt_required()
     def get(cls, menu_id: int):
         f"""
         route to list a menu by id
@@ -47,7 +48,7 @@ class Menu(Resource):
 
 
     @classmethod
-    @jwt_required()
+    #@jwt_required()
     def post(cls, menu_id: int):
         f"""
         route to add a full menu by id
@@ -86,7 +87,7 @@ class Menu(Resource):
 
 
     @classmethod
-    @jwt_required()
+    #@jwt_required()
     def delete(cls, menu_id: int):
         f"""
         route to delete menu full menu by id
@@ -115,7 +116,7 @@ class Menu(Resource):
 
 
     @classmethod
-    @jwt_required()
+    #@jwt_required()
     def put(cls, menu_id: int):
         f"""
         route to update full menu by id
@@ -160,6 +161,7 @@ class MenuItem(Resource):
     restful interface for menu items
     """
     @classmethod
+    @jwt_required()
     def get(cls, menu_id: int, item_id: int):
         f"""
         route to list a menu item by menu id and item id
@@ -189,7 +191,7 @@ class MenuList(Resource):
     restful interface to list all menus
     """
     @classmethod
-    @jwt_required()
+    #@jwt_required()
     def get(cls):
         f"""
         route to list all menus
@@ -210,8 +212,8 @@ class ItemList(Resource):
     restful interface to list all items in a menu
     """
     @classmethod
-    @jwt_required()
-    def get(cls, menu_id: int):
+    #@jwt_required()
+    def get(cls, item_id: int):
         f"""
         route to list all menus
 
@@ -222,7 +224,7 @@ class ItemList(Resource):
             current_app.logger.info(f"GET call to route {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU_ITEM_LIST']}")
             
             current_app.logger.info(f"Looking for menu in database")
-            menu = MenuModel.find_by_id(menu_id)
+            menu = MenuModel.find_by_id(item_id)
 
             if menu is not None:
                 current_app.logger.info(f"Menu found, listing items")

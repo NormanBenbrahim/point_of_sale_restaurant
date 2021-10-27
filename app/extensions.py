@@ -9,6 +9,6 @@ db = SQLAlchemy()
 marshmallow = Marshmallow()
 
 
-# initializes the blocklist of the jwt tokens, import directly
-# a better solution is to use redis and store these there, but couldn't get it working
+# initializes the blocklist of the jwt tokens, couldn't get this to work
+# usually this is best done through redis, but i couldn't get redis to work either
 BLOCKLIST = set() 

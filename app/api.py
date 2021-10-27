@@ -8,7 +8,7 @@ from app.extensions import db, jwt, marshmallow
 from app.routes.success import Success
 from app.routes.user import UserRegister, UserLogin, User, TokenRefresh, UserLogout
 from app.routes.menu import Menu, MenuList, MenuItem
-#from app.extensions import BLOCKLIST
+from app.extensions import BLOCKLIST
 
 
 # setup logger

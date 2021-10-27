@@ -1,3 +1,4 @@
+import traceback
 from flask_restful import Resource
 from flask import request, current_app
 from sqlalchemy import engine
@@ -54,8 +55,8 @@ class UserRegister(Resource):
             current_app.logger.info(f"Successfully added {user}")
             return {"message": current_app.config['MSG_CREATED_SUCCESSFULLY']}, 201
 
-        except BaseException as err:
-            current_app.logger.error(f"There was an {err} error")
+        except BaseException:
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
 
 
 class User(Resource):
@@ -84,8 +85,8 @@ class User(Resource):
             current_app.logger.info(f"User '{user.username}' in '{UserModel.__tablename__}' database")
             return schema.dump(user), 200
 
-        except BaseException as err:
-            current_app.logger.error(f"There was an {err} error")
+        except BaseException:
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
 
     
     @classmethod
@@ -114,8 +115,8 @@ class User(Resource):
             current_app.logger.info(f"Successfully deleted {user.username}")
             return {"message": current_app.config['MSG_USER_DELETED']}, 200
 
-        except BaseException as err:
-            current_app.logger.error(f"There was an {err} error")
+        except BaseException:
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
 
 
 class UserLogin(Resource):
@@ -161,8 +162,8 @@ class UserLogin(Resource):
             # bad/no tokens
             return {"message": current_app.config['MSG_INVALID_CREDENTIALS']}, 401
         
-        except BaseException as err:
-            current_app.logger.error(f"There was an {err} error")
+        except BaseException:
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
 
 
 class UserLogout(Resource):
@@ -170,7 +171,7 @@ class UserLogout(Resource):
     restful interface for user logout
     """
     @classmethod
-    @jwt_required
+    @jwt_required()
     def post(cls):
         f"""
         route to logout safely and add their token to blocklist, couldn't get redis to work
@@ -189,8 +190,8 @@ class UserLogout(Resource):
             BLOCKLIST.add(jti)
             
             # next request with the token won't work
-            current_app.logger.info("User logged out")
-            return {"message": current_app.config['MSG_USER_LOGGED_OUT'].format(user_id)}, 200
+            current_app.logger.info(f"User {user_id} logged out")
+            return {"message": current_app.config['MSG_USER_LOGGED_OUT']}, 200
 
         except BaseException as err:
             current_app.logger.error(f"There was an {err} error")
