@@ -78,7 +78,7 @@ class MenuModel(db.Model):
         }
     }
     """
-    __tablename__ = "menus"
+    __tablename__ = "menus_table"
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -143,23 +143,23 @@ class MenuModel(db.Model):
             current_app.logger.error(f"There was an error: {traceback.format_exc()}")
 
 
-    # def update_from_db(self, **kwargs) -> None:
-    #     """
-    #     update menu item
-    #     """
-    #     for key, value in kwargs.items():
-    #         if hasattr(self, key):
-    #             setattr(self, key, value)
+    def update_from_db(self, **kwargs) -> None:
+        """
+        update menu item
+        """
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
 
 
 class ItemsModel(db.Model):
     """
     main models for our items found inside the menus
     """
-    __tablename__ = "items"
+    __tablename__ = "items_table"
 
     id = db.Column(db.Integer, primary_key=True)
-    items = db.Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
+    items_id = db.Column(MutableDict.as_mutable(JSONEncodedDict), db.ForeignKey(MenuModel.id))
 
     @classmethod
     def find_by_id(cls, _id2: int) -> "ItemsModel":

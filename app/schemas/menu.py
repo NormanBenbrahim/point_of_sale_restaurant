@@ -28,4 +28,4 @@ class ItemSchema(marshmallow.SQLAlchemyAutoSchema):
     class Meta:
         model = ItemsModel
     
-    items = marshmallow.Nested(MenuSchema)
+    items_schema = marshmallow.Nested(MenuSchema)
