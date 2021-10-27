@@ -21,7 +21,8 @@ ROUTE_LOGIN = '/login'
 ROUTE_LOGOUT = '/logout'
 ROUTE_REFRESH = '/refresh'
 ROUTE_MENU = '/menu/<int:id>'
-ROUTE_MENU_LIST = '/menus'
+ROUTE_MENU_ITEM = '/menu/<int:id>/<int:menuid>'
+ROUTE_MENU_LIST = '/allmenus'
 
 
 #### common messages
@@ -34,6 +35,7 @@ MSG_USER_LOGGED_OUT = "User <id={user_id}> successfully logged out"
 MSG_NAME_ALREADY_EXISTS = "An item with name '{}' already exists"
 MSG_ERROR_INSERTING = "An error occurred while inserting the menu"
 MSG_MENU_NOT_FOUND = "Menu not found."
+MSG_MENU_FOUND = "Menu found"
 MSG_MENU_DELETED = "Menu deleted"
 MSG_MENU_ADDED = "Menu added"
 MSG_MENU_UPDATED = "Menu updated"

@@ -17,12 +17,12 @@ menu_list_schema = MenuSchema(many=True)
 
 class Menu(Resource):
     """
-    restful interface for querying menu info
+    restful interface for menu
     """
     @classmethod
-    def get(cls, id: int):
+    def get(cls, menu_id: int):
         f"""
-        route to list a menu by name
+        route to list a menu by id
 
         postman request:
         GET {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU']}
@@ -31,24 +31,24 @@ class Menu(Resource):
             current_app.logger.info(f"GET call to route {current_app.config['ROUTE_MENU']}")
 
             current_app.logger.info(f"Looking for menu in database")
-            menu = MenuModel.find_by_id(id)
+            menu = MenuModel.find_by_id(menu_id)
 
-            if menu is None:
-                current_app.logger.info(f"Menu '{id}' in '{MenuModel.__tablename__}' database")
-                return menu_schema.dump(menu), 200
-            
-            current_app.logger.warning(f"Menu '{id}' not found in '{MenuModel.__tablename__}' database")
-            return {"message": current_app.config['MSG_MENU_NOT_FOUND']}, 400
+            if menu is None:            
+                current_app.logger.warning(f"Menu '{menu_id}' not found in '{MenuModel.__tablename__}' database")
+                return {"message": current_app.config['MSG_MENU_NOT_FOUND']}, 400
+
+            current_app.logger.info(f"Menu '{menu_id}' in '{MenuModel.__tablename__}' database")
+            return menu_schema.dump(menu), 200        
         
-        except BaseException:       
+        except BaseException:     
             current_app.logger.error(f"There was an error: {traceback.format_exc()}")
 
 
     @classmethod
     @jwt_required()
-    def post(cls, id: int):
+    def post(cls, menu_id: int):
         f"""
-        route to add a menu by name
+        route to add a full menu by id
 
         postman request:
         POST {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU']}
@@ -58,10 +58,10 @@ class Menu(Resource):
 
             # duplicate menus
             current_app.logger.info(f"Checking if menu already exists")
-            if MenuModel.find_by_id(id):
-                current_app.logger.warning(f"Menu {id} already exists")
+            if MenuModel.find_by_id(menu_id):
+                current_app.logger.warning(f"Menu {menu_id} already exists")
                 
-                return {"message": current_app.config['MSG_NAME_ALREADY_EXISTS'].format(id)}, 400
+                return {"message": current_app.config['MSG_NAME_ALREADY_EXISTS'].format(menu_id)}, 400
 
             current_app.logger.info(f"Defining session and passing to the load session")
             session = scoped_session(sessionmaker(bind=engine))
@@ -80,9 +80,9 @@ class Menu(Resource):
 
     @classmethod
     @jwt_required()
-    def delete(cls, id: int):
+    def delete(cls, menu_id: int):
         f"""
-        route to delete menu by name
+        route to delete menu full menu by id
 
         postman request:
         DELETE {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU']}
@@ -91,7 +91,7 @@ class Menu(Resource):
             current_app.logger.info(f"DELETE call to route {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU']}")
 
             current_app.logger.info("Looking for menu in database")
-            menu = MenuModel.find_by_id(id)
+            menu = MenuModel.find_by_id(menu_id)
 
             if menu:
                 current_app.logger.info("Deleting menu")
@@ -109,9 +109,9 @@ class Menu(Resource):
 
     @classmethod
     @jwt_required()
-    def put(cls, id: int):
+    def put(cls, menu_id: int):
         f"""
-        route to update menu items by name
+        route to update full menu by id
 
         postman request:
         PUT {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU']}
@@ -120,11 +120,11 @@ class Menu(Resource):
             current_app.logger.info(f"PUT call to route {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU']}")
             
             current_app.logger.info(f"Checking if menu exists")
-            menu = MenuModel.find_by_id(id)
+            menu = MenuModel.find_by_id(menu_id)
             # update menu if exists
 
             if menu:
-                current_app.logger.info(f"Menu {id} found, updating fields")
+                current_app.logger.info(f"Menu {menu_id} found, updating fields")
 
                 # define session
                 #current_app.logger.info(f"Defining session and passing to the load session")
@@ -147,6 +147,35 @@ class Menu(Resource):
 
         except BaseException:
             current_app.logger.error(f"There was an error: {traceback.format_exc()}")
+
+
+class MenuItem(Resource):
+    """
+    restful interface for querying menu items
+    """
+    @classmethod
+    def get(cls, menu_id: int, item_id: int):
+        f"""
+        route to list a menu item by menu id and item id
+
+        postman request:
+        GET {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU_ITEM']}
+        """
+        try:
+            current_app.logger.info(f"GET call to route {current_app.config['ROUTE_MENU_ITEM']}")
+
+            current_app.logger.info(f"Looking for menu in database")
+            menu = MenuModel.find_by_id(menu_id)
+
+            if menu is None:
+                current_app.logger.info(f"Menu '{menu_id}' in '{MenuModel.__tablename__}' database")
+                return menu_schema.dump(menu), 200
+            
+            current_app.logger.warning(f"Menu '{menu_id}' not found in '{MenuModel.__tablename__}' database")
+            return {"message": current_app.config['MSG_MENU_NOT_FOUND']}, 400
+        
+        except BaseException:     
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")  
 
 
 class MenuList(Resource):

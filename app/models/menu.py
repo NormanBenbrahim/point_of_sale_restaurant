@@ -1,5 +1,7 @@
+import traceback
 from typing import List
 from flask import current_app, json
+#from sqlalchemy.orm import backref
 from sqlalchemy.types import TypeDecorator, VARCHAR
 from sqlalchemy.ext.mutable import Mutable
 
@@ -26,7 +28,7 @@ class JSONEncodedDict(TypeDecorator):
 
 
 # from sqlalchemy docs, applies mutable mixin to dictionary to allow to update in place
-# as it is serialized
+# as it is serialized, helper class for above class
 class MutableDict(Mutable, dict):
     @classmethod
     def coerce(cls, key, value):
@@ -54,17 +56,35 @@ class MutableDict(Mutable, dict):
         self.changed()
 
 
+# wrapping everything in trys to hopefully catch in logs
 class MenuModel(db.Model):
     """
-    main model for our menubase, errors handled in menu routes
+    menu will be modeled as so:
+
+    {
+        {"<int:main_id>": {
+            "<int:item_id>": {
+                "price": <float>, 
+                "description": <str>,
+                "quantity": <int>
+                },
+            "<int:item_id>": {
+                "price": <float>, 
+                "description": <str>,
+                "quantity": <int>
+                },
+            {...}
+            } 
+        }
+    }
     """
     __tablename__ = "menus"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), nullable=False, unique=True)
-    description = db.Column(db.String(80), nullable=False, unique=True)
-    price = db.Column(db.Float(precision=2), nullable=False)
-    items = db.Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
+
+    # items into general purpose mutable dict & parse errors in route
+    #items = db.Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
+    items = db.relationship("ItemsModel", backref='items', lazy="dynamic")
 
     # link the menu and orders tables' ids together for easy lookup
     #order_id = db.Column(db.Integer, db.ForeignKey("orders.id"), nullable=False)
@@ -74,19 +94,14 @@ class MenuModel(db.Model):
     @classmethod
     def find_by_id(cls, _id: int) -> "MenuModel":
         """
-        utility to search for menus by id  in the database
+        utility to search for menus by id in the database
         """
-        current_app.logger.info("find_by_id utility called inside menu models")
-        return cls.query.filter_by(id=_id).first()
+        try:
+            current_app.logger.info("find_by_id utility called inside menu models")
+            return cls.query.filter_by(id=_id).first()
 
-
-    @classmethod
-    def find_by_name(cls, name: str) -> "MenuModel":
-        """
-        utility to search for menus by name in the database
-        """
-        current_app.logger.info("find_by_name utility called inside menu models")
-        return cls.query.filter_by(name=name).first()
+        except BaseException:
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
 
 
     @classmethod
@@ -94,32 +109,117 @@ class MenuModel(db.Model):
         """
         utility to find all menus in the database
         """
-        current_app.logger.info("find_all utility called inside menu models")
-        return cls.query.all()
+        try:
+            current_app.logger.info("find_all utility called inside menu models")
+            return cls.query.all()
+        
+        except BaseException:
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
 
 
     def save_to_db(self) -> None:
         """
         save menu to database
         """
-        current_app.logger.info("Saving to database")
-        db.session.add(self)
-        db.session.commit()
+        try:
+            current_app.logger.info("Saving to database")
+            db.session.add(self)
+            db.session.commit()
+        
+        except BaseException:
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
 
 
     def delete_from_db(self) -> None:
         """
         delete menu from database
         """
-        current_app.logger.info("Deleting from database")
-        db.session.delete(self)
-        db.session.commit()
+        try:
+            current_app.logger.info("Deleting from database")
+            db.session.delete(self)
+            db.session.commit()
+
+        except BaseException:
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
+
+
+    # def update_from_db(self, **kwargs) -> None:
+    #     """
+    #     update menu item
+    #     """
+    #     for key, value in kwargs.items():
+    #         if hasattr(self, key):
+    #             setattr(self, key, value)
+
+
+class ItemsModel(db.Model):
+    """
+    main models for our items found inside the menus
+    """
+    __tablename__ = "items"
+
+    id = db.Column(db.Integer, primary_key=True)
+    items = db.Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
+
+    @classmethod
+    def find_by_id(cls, _id2: int) -> "ItemsModel":
+        """
+        utility to search for menus by id in the database
+        """
+        try:
+            current_app.logger.info("find_by_id utility called inside items models")
+            return cls.query.filter_by(id=_id2).first()
+
+        except BaseException:
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
+
+    @classmethod
+    def find_all(cls) -> List['ItemsModel']:
+        """
+        utility to find all menus in the database
+        """
+        try:
+            current_app.logger.info("find_all utility called inside items models")
+            return cls.query.all()
+
+        except BaseException:
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
+
+
+    def save_to_db(self) -> None:
+        """
+        save item to items database
+        """
+        try:
+            current_app.logger.info("Saving to database")
+            db.session.add(self)
+            db.session.commit()
+
+        except BaseException:
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
+
+
+    def delete_from_db(self) -> None:
+        """
+        delete item from items database
+        """
+        try:
+            current_app.logger.info("Deleting from database")
+            db.session.delete(self)
+            db.session.commit()
+
+        except BaseException:
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
 
 
     def update_from_db(self, **kwargs) -> None:
         """
         update menu item
         """
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
+        try:
+            for key, value in kwargs.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
+
+        except BaseException:
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
