@@ -4,6 +4,7 @@ from flask import current_app, json
 #from sqlalchemy.orm import backref
 from sqlalchemy.types import TypeDecorator, VARCHAR
 from sqlalchemy.ext.mutable import Mutable
+from sqlalchemy import CheckConstraint
 
 from app.extensions import db
 
@@ -159,7 +160,7 @@ class ItemsModel(db.Model):
     __tablename__ = "items_table"
 
     items_id = db.Column(db.Integer, db.ForeignKey(MenuModel.id), primary_key=True)
-    items = db.Column(MutableDict.as_mutable(JSONEncodedDict))
+    items = db.Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
 
     @classmethod
     def find_by_id(cls, _id2: int) -> "ItemsModel":

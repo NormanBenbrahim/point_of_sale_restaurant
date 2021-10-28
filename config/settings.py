@@ -1,5 +1,4 @@
-from datetime import timedelta 
-import os 
+import os
 
 
 ##### helps to debug 
@@ -42,6 +41,7 @@ MSG_MENU_FOUND = "Menu found"
 MSG_MENU_DELETED = "Menu deleted"
 MSG_MENU_ADDED = "Menu added"
 MSG_MENU_UPDATED = "Menu updated"
+MSG_MENU_INPUT_EMPTY = "No menu given"
 
 
 ##### database
@@ -50,13 +50,3 @@ db_uri = 'postgresql://{0}:{1}@postgres:5432/{2}'.format(os.environ['POSTGRES_US
                                                          os.environ['POSTGRES_DB'])
 SQLALCHEMY_DATABASE_URI = db_uri
 SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-
-##### jwt settings, couldn't get this to work
-JWT_TOKEN_LOCATION = ['cookies', 'headers'] # allow other clients to access
-JWT_SECRET_KEY = os.urandom(16) # initialize api's secret key for HS* algorithm
-JWT_COOKIE_SECURE = False # change to true in production
-JWT_SESSION_COOKIE = False # ccookies persist even after client is closed
-JWT_ACCESS_TOKEN_EXPIRES = timedelta(weeks=52) # token expiry 
-JWT_ACCESS_COOKIE_PATH = '/'
-JWT_COOKIE_CSRF_PROTECT = True # enable CSRF double submit protection, not sure if necessary

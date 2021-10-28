@@ -4,11 +4,10 @@ from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
 
-from app.extensions import db, jwt, marshmallow
+from app.extensions import db, marshmallow
 from app.routes.success import Success
-from app.routes.user import UserRegister, UserLogin, User, TokenRefresh, UserLogout
+from app.routes.user import UserRegister, User
 from app.routes.menu import Menu, MenuList, MenuItem
-from app.extensions import BLOCKLIST
 
 
 # setup logger
@@ -50,22 +49,13 @@ def create_app(settings_override=None):
         def create_tables():
             db.create_all()
 
-        # check if token blocklisted, best to use redis but sadly i couldn't get it to work
-        #app.logger.info("Loading blocklisted tokens")
-        #@jwt.token_in_blocklist_loader
-        #def check_if_blocklist(token):
-        #    return token['jti'] in BLOCKLIST
-
         # add routes, '/' first is best practice
         app.logger.info("Loading restful routes")
         api.add_resource(Success, app.config['ROUTE_SUCCESS'])
 
         # user routes
-        api.add_resource(UserLogin, app.config['ROUTE_LOGIN'])
         api.add_resource(UserRegister, app.config['ROUTE_USER_REGISTER'])
         api.add_resource(User, app.config['ROUTE_USER'])
-        api.add_resource(UserLogout, app.config['ROUTE_LOGOUT'])
-        api.add_resource(TokenRefresh, app.config['ROUTE_REFRESH'])
 
         # menu routes
         api.add_resource(Menu, app.config['ROUTE_MENU'])
@@ -86,7 +76,6 @@ def extensions(app):
     """
     register each loaded extension to the app, keep dir structure clean
     """
-    jwt.init_app(app)
     db.init_app(app)
     marshmallow.init_app(app)
 

@@ -3,12 +3,11 @@ from flask_restful import Resource
 from flask import request, current_app
 from sqlalchemy import engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
+from werkzeug.datastructures import ContentSecurityPolicy
 
 from app.models.menu import MenuModel
 from app.schemas.menu import ItemSchema, MenuSchema
-from app.extensions import jwt
 
 
 # initiate schemas
@@ -22,7 +21,6 @@ class Menu(Resource):
     restful interface for menu
     """
     @classmethod
-    #@jwt_required()
     def get(cls, menu_id: int):
         f"""
         route to list a menu by id
@@ -48,7 +46,6 @@ class Menu(Resource):
 
 
     @classmethod
-    #@jwt_required()
     def post(cls, menu_id: int):
         f"""
         route to add a full menu by id
@@ -69,11 +66,14 @@ class Menu(Resource):
 
             # error handling
             current_app.logger.info("Menu doesn't exist, checking payload")
-            payload = request.json()
+            current_app.config.items(f"payload: {request.form}")
+            # if request.get_json() is None:
+            #     current_app.logger.info("payload empy")
+            #     return {"message": current_app.config['MSG_MENU_INPUT_EMPTY']}
 
             current_app.logger.info(f"Defining session and passing to the load session")
             session = scoped_session(sessionmaker(bind=engine))
-            menu = menu_schema.load(payload, session=session)
+            menu = menu_schema.load(request.get_json(), session=session)
             
             # add new menu
             current_app.logger.info("Saving menu to database")
@@ -87,7 +87,6 @@ class Menu(Resource):
 
 
     @classmethod
-    #@jwt_required()
     def delete(cls, menu_id: int):
         f"""
         route to delete menu full menu by id
@@ -116,7 +115,6 @@ class Menu(Resource):
 
 
     @classmethod
-    #@jwt_required()
     def put(cls, menu_id: int):
         f"""
         route to update full menu by id
@@ -161,7 +159,6 @@ class MenuItem(Resource):
     restful interface for menu items
     """
     @classmethod
-    @jwt_required()
     def get(cls, menu_id: int, item_id: int):
         f"""
         route to list a menu item by menu id and item id
@@ -191,7 +188,6 @@ class MenuList(Resource):
     restful interface to list all menus
     """
     @classmethod
-    #@jwt_required()
     def get(cls):
         f"""
         route to list all menus
@@ -212,7 +208,6 @@ class ItemList(Resource):
     restful interface to list all items in a menu
     """
     @classmethod
-    #@jwt_required()
     def get(cls, item_id: int):
         f"""
         route to list all menus
