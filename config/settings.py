@@ -44,9 +44,18 @@ MSG_MENU_UPDATED = "Menu updated"
 MSG_MENU_INPUT_EMPTY = "No menu given"
 
 
-##### database
-db_uri = 'postgresql://{0}:{1}@postgres:5432/{2}'.format(os.environ['POSTGRES_USER'],
-                                                         os.environ['POSTGRES_PASSWORD'],
-                                                         os.environ['POSTGRES_DB'])
-SQLALCHEMY_DATABASE_URI = db_uri
+##### databases
+db_uri = 'postgresql://{0}:{1}@postgres:5432/{2}'
+# bindkeys
+USERS = 'users'
+MENUS = 'menus'
+# root url (users)
+SQLALCHEMY_DATABASE_URI = db_uri.format(os.environ['POSTGRES_USER'],
+                                        os.environ['POSTGRES_PASSWORD'],
+                                        os.environ['POSTGRES_DB_USERS'])
+SQLALCHEMY_BINDS = {
+    MENUS: db_uri.format(os.environ['POSTGRES_USER'],
+                        os.environ['POSTGRES_PASSWORD'],
+                        os.environ['POSTGRES_DB_MENU'],)
+}
 SQLALCHEMY_TRACK_MODIFICATIONS = False

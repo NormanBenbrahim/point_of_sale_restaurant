@@ -2,12 +2,14 @@
 
 # deletes and re-builds each time to emulate full production deployments as much as possible
 # add a command line argument (anything, really) to keep a cache. useful for testing
+echo ""
 echo "Cleaning previous instance"
 docker-compose rm -f
 docker-compose down 
 
 # if no command line args, build from scratch
-if [ $# -eq 0 ]; then 
+if [ $# -eq 0 ]; then
+    echo ""
     echo "No command line argument given, building from scratch"
     
     # unlink everything
@@ -26,18 +28,23 @@ if [ $# -eq 0 ]; then
             echo ""
         elif [ $img = "" ]; then
             echo ""
-        else 
+        elif [ ! "$img" ]; then
+            echo ""
+        else
+            echo "" 
             echo "Removing image $img"
             docker rmi $img
         fi
     done
 
     # build everything
-    echo "Building & launching container"
+    echo ""
+    echo "Building & launching container from scratch"
     docker-compose build --no-cache
     docker-compose up 
 else
     # build from cache
+    echo ""
     echo "Command line argument given, building from cache & launching container"
     docker-compose build
     docker-compose up

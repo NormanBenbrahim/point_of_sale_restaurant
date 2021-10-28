@@ -4,7 +4,7 @@ from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
 
-from app.extensions import db, marshmallow
+from app.extensions import db, ma
 from app.routes.success import Success
 from app.routes.user import UserRegister, User
 from app.routes.menu import Menu, MenuList, MenuItem
@@ -54,15 +54,14 @@ def create_app(settings_override=None):
         api.add_resource(Success, app.config['ROUTE_SUCCESS'])
 
         # user routes
-        api.add_resource(UserRegister, app.config['ROUTE_USER_REGISTER'])
-        api.add_resource(User, app.config['ROUTE_USER'])
+        #api.add_resource(UserRegister, app.config['ROUTE_USER_REGISTER'])
+        #api.add_resource(User, app.config['ROUTE_USER'])
 
         # menu routes
         api.add_resource(Menu, app.config['ROUTE_MENU'])
         api.add_resource(MenuList, app.config['ROUTE_MENU_LIST'])
 
         # orders route
-
 
         app.logger.info("API ready")
         return app
@@ -77,15 +76,19 @@ def extensions(app):
     register each loaded extension to the app, keep dir structure clean
     """
     db.init_app(app)
-    marshmallow.init_app(app)
+    ma.init_app(app)
 
     return None 
 
 
 if __name__ == '__main__':
     try:
+        import os
+        from dotenv import load_dotenv
+        
+        load_dotenv()
         app = create_app()
         app.run(port=8080, debug=True)
 
     except BaseException:
-        print(f"There was an error while creating the application: \n" + traceback.format_exc())
+        print(f"There was an error while creating the application in dev: \n" + traceback.format_exc())

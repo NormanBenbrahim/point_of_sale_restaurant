@@ -1,13 +1,14 @@
 import traceback
 from flask_restful import Resource
 from flask import request, current_app
-from sqlalchemy import engine
-from sqlalchemy.orm import scoped_session, sessionmaker
+#from sqlalchemy import engine
+#from sqlalchemy.orm import scoped_session, sessionmaker
 from marshmallow import ValidationError
 from werkzeug.datastructures import ContentSecurityPolicy
 
 from app.models.menu import MenuModel
 from app.schemas.menu import ItemSchema, MenuSchema
+from app.extensions import db
 
 
 # initiate schemas
@@ -58,23 +59,23 @@ class Menu(Resource):
 
             # duplicate menus
             current_app.logger.info(f"Checking if menu already exists")
-            menu = MenuModel.find_by_id(menu_id)
+            #menu = MenuModel.find_by_id(menu_id)
+            session = db.session()
+            menu = session.query(MenuModel).filter_by(id=menu_id).first()
             
+            # if exists send error message
             if menu is not None:
                 current_app.logger.warning(f"Menu '{menu_id}' found in '{MenuModel.__tablename__}' database")
                 return {"message": current_app.config['MSG_MENU_ALREADY_EXISTS'].format(menu_id)}, 400
 
             # error handling
-            current_app.logger.info("Menu doesn't exist, checking payload")
-            current_app.config.items(f"payload: {request.form}")
-            # if request.get_json() is None:
-            #     current_app.logger.info("payload empy")
-            #     return {"message": current_app.config['MSG_MENU_INPUT_EMPTY']}
+            current_app.logger.info("Menu doesn't exist, creating")
 
             current_app.logger.info(f"Defining session and passing to the load session")
-            session = scoped_session(sessionmaker(bind=engine))
-            menu = menu_schema.load(request.get_json(), session=session)
-            
+            #session = scoped_session(sessionmaker(bind=engine))
+            #menu = menu_schema.load(request.get_json(), session=session)
+            menu = menu_schema.load(request.get_json())
+
             # add new menu
             current_app.logger.info("Saving menu to database")
             MenuModel.save_to_db(menu)

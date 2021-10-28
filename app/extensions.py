@@ -5,4 +5,4 @@ from flask_marshmallow import Marshmallow
 
 # app specific extensions, add to extensions method in app.py
 db = SQLAlchemy()
-marshmallow = Marshmallow()
+ma= Marshmallow()
