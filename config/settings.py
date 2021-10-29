@@ -42,6 +42,7 @@ MSG_MENU_DELETED = "Menu deleted"
 MSG_MENU_ADDED = "Menu added"
 MSG_MENU_UPDATED = "Menu updated"
 MSG_MENU_INPUT_EMPTY = "No menu given"
+MSG_VALIDATION_ERROR = "There was an error in your payload input: {}"
 
 
 ##### databases

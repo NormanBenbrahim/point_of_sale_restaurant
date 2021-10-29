@@ -1,10 +1,9 @@
 import traceback
 from flask_restful import Resource
-from flask import request, current_app
+from flask import request, current_app, json
 from sqlalchemy import engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from marshmallow import ValidationError
-from werkzeug.datastructures import ContentSecurityPolicy
 
 from app.models.menu import MenuModel
 from app.schemas.menu import ItemSchema, MenuSchema
@@ -13,7 +12,7 @@ from app.extensions import db
 
 # initiate schemas
 menu_schema = MenuSchema()
-menu_list_schema = MenuSchema(many=True)
+#menu_list_schema = MenuSchema(many=True)
 item_list_schema = ItemSchema(many=True)
 
 
@@ -41,6 +40,7 @@ class Menu(Resource):
                 return {"message": current_app.config['MSG_MENU_NOT_FOUND']}, 400
 
             current_app.logger.info(f"Menu '{menu_id}' in '{MenuModel.__tablename__}' database")
+            current_app.logger.info(f"Menu: {menu.items}")
             return menu_schema.dump(menu), 200        
         
         except BaseException:     
@@ -60,8 +60,8 @@ class Menu(Resource):
 
             # duplicate menus
             current_app.logger.info(f"Checking if menu already exists")
-            session = db.session()
-            menu = session.query(MenuModel).filter_by(id=menu_id).first()
+            session_db = db.session()
+            menu = session_db.query(MenuModel).filter_by(id=menu_id).first()
             
             # if exists send error message
             if menu is not None:
@@ -70,11 +70,15 @@ class Menu(Resource):
 
             # error handling
             current_app.logger.info("Menu doesn't exist, creating")
-
             current_app.logger.info(f"Defining session and passing to the load session")
-            session = scoped_session(sessionmaker(bind=engine))
-            menu = menu_schema.load(request.get_json(), session=session)
-            #menu = menu_schema.load(request.get_json())
+
+            # handle marshmallow validation errors separately to give custom error messages
+            try:
+                session = scoped_session(sessionmaker(bind=engine))
+                menu = menu_schema.load(request.get_json(), session=session)
+            except ValidationError as err:
+                current_app.logger.error(f"There was an error in your payload: {err.messages}")
+                return {"message": current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)}, 400
 
             # add new menu
             current_app.logger.info("Saving menu to database")
@@ -85,7 +89,8 @@ class Menu(Resource):
             return {"message": current_app.config['MSG_MENU_ADDED']}, 200
 
         except BaseException:
-            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
+            current_app.logger.warning(f"There was an error: {traceback.format_exc()}")
+            return {"There was an unknown error. traceback: ": f"{traceback.format_exc()}"}
 
 
     @classmethod

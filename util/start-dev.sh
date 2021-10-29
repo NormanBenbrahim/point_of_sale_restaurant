@@ -2,8 +2,6 @@
 
 # deletes and re-builds each time to emulate full production deployments as much as possible
 # add a command line argument (anything, really) to keep a cache. useful for testing
-echo ""
-echo "Cleaning previous instance"
 docker-compose rm -f
 docker-compose down 
 
@@ -11,8 +9,10 @@ docker-compose down
 if [ $# -eq 0 ]; then
     echo ""
     echo "No command line argument given, building from scratch"
+    echo "Cleaning previous instance"
     
     # unlink everything
+    echo ""
     echo "Unlinking everything"
     docker system prune -f
     docker image prune -f

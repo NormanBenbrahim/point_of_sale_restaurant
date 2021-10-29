@@ -11,24 +11,7 @@ from app.extensions import db
 
 class MenuModel(db.Model):
     """
-    menu will be modeled as so:
-    {
-        1: {
-            1: {
-                "description": "a piece of tomato",
-                "price": 0.64,
-                "quantity": 1
-                },
-            2: {
-                "description": "a hamburger with cheese",
-                "price": 9.95,
-                "quantity": 2
-                }
-        },
-        2: {....},
-        ...,
-        n: {...}
-    }
+    models for our menu
     """
     __bindkey__ = os.environ['POSTGRES_DB']
     __tablename__ = "menus_table"
