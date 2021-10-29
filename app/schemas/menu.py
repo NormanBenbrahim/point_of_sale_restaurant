@@ -13,9 +13,9 @@ class ItemSchema(ma.Schema):
     price = fields.Float()
     quantity = fields.Integer()
 
-    # class Meta:
-    #     model = ItemsModel
-    #     load_instance = True
+    class Meta:
+        load_instance = True
+        include_fk = True
 
 
 class MenuSchema(ma.Schema):
