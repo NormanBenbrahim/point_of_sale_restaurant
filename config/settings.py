@@ -52,10 +52,9 @@ MENUS = 'menus'
 # root url (users)
 SQLALCHEMY_DATABASE_URI = db_uri.format(os.environ['POSTGRES_USER'],
                                         os.environ['POSTGRES_PASSWORD'],
-                                        os.environ['POSTGRES_DB_USERS'])
-SQLALCHEMY_BINDS = {
-    MENUS: db_uri.format(os.environ['POSTGRES_USER'],
-                        os.environ['POSTGRES_PASSWORD'],
-                        os.environ['POSTGRES_DB_MENU'],)
-}
-SQLALCHEMY_TRACK_MODIFICATIONS = False
+                                        os.environ['POSTGRES_DB'])
+# SQLALCHEMY_BINDS = {
+#     MENUS: db_uri.format(os.environ['POSTGRES_USER'],
+#                         os.environ['POSTGRES_PASSWORD'],
+#                         os.environ['POSTGRES_DB_MENU'])
+# }

@@ -1,4 +1,5 @@
 import traceback
+import os
 from typing import List
 from flask import current_app, json
 from sqlalchemy.orm import relationship, backref, scoped_session
@@ -7,7 +8,7 @@ from sqlalchemy.ext.mutable import Mutable
 
 from app.extensions import db
 
-Base = db.declarative_base()
+#Base = db.declarative_base()
 
 # from sqlalchemy docs, helps map dictionaries as json string
 class JSONEncodedDict(TypeDecorator):
@@ -76,9 +77,9 @@ docs =     """
         n: {...}
     }
     """
-#class MenuModel(db.Model):
-class MenuModel(Base):
-    __bindkey__ = 'menus'
+class MenuModel(db.Model):
+#class MenuModel(Base):
+    __bindkey__ = os.environ['POSTGRES_DB']
     __tablename__ = "menus_table"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -147,8 +148,8 @@ class MenuModel(Base):
         #         setattr(self, key, value)
 
 
-#class ItemsModel(db.Model):
-class ItemsModel(Base):
+class ItemsModel(db.Model):
+#class ItemsModel(Base):
     """
     main models for our items found inside the menus
     """

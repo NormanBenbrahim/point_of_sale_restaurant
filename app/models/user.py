@@ -5,8 +5,8 @@ class UserModel(db.Model):
     """
     main model for our userbase, errors are handled in user routes
     """
-    #__bindkey__ = 'users'
-    __tablename__ = "users_table"
+    __bindkey__ = 'users'
+    #__tablename__ = "users_table"
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), nullable=False, unique=True)

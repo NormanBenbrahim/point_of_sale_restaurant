@@ -48,14 +48,17 @@ def create_app(settings_override=None):
         @app.before_first_request
         def create_tables():
             db.create_all()
+        
+        app.logger.info("Databases: ")
+        
 
         # add routes, '/' first is best practice
         app.logger.info("Loading restful routes")
         api.add_resource(Success, app.config['ROUTE_SUCCESS'])
 
         # user routes
-        #api.add_resource(UserRegister, app.config['ROUTE_USER_REGISTER'])
-        #api.add_resource(User, app.config['ROUTE_USER'])
+        api.add_resource(UserRegister, app.config['ROUTE_USER_REGISTER'])
+        api.add_resource(User, app.config['ROUTE_USER'])
 
         # menu routes
         api.add_resource(Menu, app.config['ROUTE_MENU'])
