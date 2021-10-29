@@ -4,24 +4,25 @@ from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow import fields, validate, EXCLUDE
 
 
-class ItemSchema(ma.Schema):
+class ItemSchema(SQLAlchemyAutoSchema):
     id = fields.Int()
     description = fields.Str()
     price = fields.Float()
     quantity = fields.Integer()
-    unknown = EXCLUDE
 
     class Meta:
         model = ItemsModel
         load_instance = True
         include_fk = True
+        unknown = EXCLUDE
 
 
-class MenuSchema(ma.Schema):
+class MenuSchema(SQLAlchemyAutoSchema):
     items = fields.Dict(keys=fields.Int(), values=fields.Nested(ItemSchema))
 
     class Meta:
         model = MenuModel
         load_instance = True
-        #include_fk = True
+        include_fk = True
+        unknown = EXCLUDE
 

@@ -1,8 +1,8 @@
 import traceback
 from flask_restful import Resource
 from flask import request, current_app
-#from sqlalchemy import engine
-#from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy import engine
+from sqlalchemy.orm import scoped_session, sessionmaker
 from marshmallow import ValidationError
 from werkzeug.datastructures import ContentSecurityPolicy
 
@@ -33,7 +33,8 @@ class Menu(Resource):
             current_app.logger.info(f"GET call to route {current_app.config['ROUTE_MENU']}")
 
             current_app.logger.info(f"Looking for menu in database")
-            menu = MenuModel.find_by_id(menu_id)
+            session = db.session()
+            menu = session.query(MenuModel).filter_by(id=menu_id).first()
 
             if menu is None:            
                 current_app.logger.warning(f"Menu '{menu_id}' not found in '{MenuModel.__tablename__}' database")
@@ -59,7 +60,6 @@ class Menu(Resource):
 
             # duplicate menus
             current_app.logger.info(f"Checking if menu already exists")
-            #menu = MenuModel.find_by_id(menu_id)
             session = db.session()
             menu = session.query(MenuModel).filter_by(id=menu_id).first()
             
@@ -72,13 +72,14 @@ class Menu(Resource):
             current_app.logger.info("Menu doesn't exist, creating")
 
             current_app.logger.info(f"Defining session and passing to the load session")
-            #session = scoped_session(sessionmaker(bind=engine))
-            #menu = menu_schema.load(request.get_json(), session=session)
-            menu = menu_schema.load(request.get_json())
+            session = scoped_session(sessionmaker(bind=engine))
+            menu = menu_schema.load(request.get_json(), session=session)
+            #menu = menu_schema.load(request.get_json())
 
             # add new menu
             current_app.logger.info("Saving menu to database")
-            MenuModel.save_to_db(menu)
+            db.session.add(menu)
+            db.session.commit()
 
             current_app.logger.info(f"Successfully added {menu}")
             return {"message": current_app.config['MSG_MENU_ADDED']}, 200
