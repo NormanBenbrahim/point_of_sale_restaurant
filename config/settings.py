@@ -53,6 +53,8 @@ MENUS = 'menus'
 SQLALCHEMY_DATABASE_URI = db_uri.format(os.environ['POSTGRES_USER'],
                                         os.environ['POSTGRES_PASSWORD'],
                                         os.environ['POSTGRES_DB'])
+
+SQLALCHEMY_TRACK_MODIFICATIONS = False
 # SQLALCHEMY_BINDS = {
 #     MENUS: db_uri.format(os.environ['POSTGRES_USER'],
 #                         os.environ['POSTGRES_PASSWORD'],

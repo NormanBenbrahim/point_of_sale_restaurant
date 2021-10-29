@@ -34,6 +34,7 @@ class MenuModel(db.Model):
     __tablename__ = "menus_table"
 
     id = db.Column(db.Integer, primary_key=True)
+    items = db.relationship("ItemsModel", backref=backref(__tablename__))
 
 
 class ItemsModel(db.Model):
@@ -44,4 +45,3 @@ class ItemsModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     menu_id = db.Column(db.Integer, db.ForeignKey(MenuModel.id))
-    items = db.relationship("MenuModel", backref=backref(__tablename__))
