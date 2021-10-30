@@ -10,24 +10,24 @@ from marshmallow import fields, validates, EXCLUDE, post_load
 class Nested(fields.Nested):
     """
     as far as i know deserializing nested objects is still an outstanding issue
-    for the marshmallow team
+    for the marshmallow team so a custom nested object is necessary
     
     see:
     https://github.com/marshmallow-code/marshmallow-sqlalchemy/issues/67
     https://stackoverflow.com/questions/63267893/sqlalchemyautoschema-nested-deserialization
     """
-
     def _deserialize(self, *args, **kwargs):
         if hasattr(self.schema, "session"):
             self.schema.session = db.session  # overwrite session here
             self.schema.transient = self.root.transient
         return super()._deserialize(*args, **kwargs)
 
+
 class ItemSchema(SQLAlchemyAutoSchema):
     """
     item schema
     """
-    id = fields.String(required=True)
+    item_id = fields.String(required=True)
     description = fields.String(required=True)
     price = fields.Float(required=True)
     quantity = fields.Integer(required=True)

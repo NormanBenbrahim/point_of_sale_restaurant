@@ -33,7 +33,7 @@ class Menu(Resource):
 
             current_app.logger.info(f"Looking for menu in database")
             session = db.session()
-            menu = session.query(MenuModel).filter_by(id=menu_id).first()
+            menu = session.query(MenuModel).filter_by(menu_id=menu_id).first()
 
             if menu is None:            
                 current_app.logger.warning(f"Menu '{menu_id}' not found in '{MenuModel.__tablename__}' database")
@@ -61,7 +61,7 @@ class Menu(Resource):
             # duplicate menus
             current_app.logger.info(f"Checking if menu already exists")
             session_db = db.session()
-            menu = session_db.query(MenuModel).filter_by(id=menu_id).first()
+            menu = session_db.query(MenuModel).filter_by(menu_id=menu_id).first()
             
             # if exists send error message
             if menu is not None:

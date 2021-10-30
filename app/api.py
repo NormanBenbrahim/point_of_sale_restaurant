@@ -86,12 +86,8 @@ def extensions(app):
 
 if __name__ == '__main__':
     try:
-        import os
-        from dotenv import load_dotenv
-        
-        load_dotenv()
         app = create_app()
-        app.run(port=8080, debug=True)
+        app.run(port=5000, debug=True)
 
     except BaseException:
         print(f"There was an error while creating the application in dev: \n" + traceback.format_exc())
