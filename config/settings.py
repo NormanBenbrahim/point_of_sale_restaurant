@@ -20,10 +20,9 @@ ROUTE_USER = '/user/<int:user_id>'
 ROUTE_LOGIN = '/login'
 ROUTE_LOGOUT = '/logout'
 ROUTE_REFRESH = '/refresh'
-ROUTE_MENU = '/menu/<int:menu_id>'
+ROUTE_MENU = '/add'
+ROUTE_MENU_ITEM = '/menu/<int:item_id>'
 ROUTE_MENU_LIST = '/allmenus'
-ROUTE_MENU_ITEM = '/menu/<int:menu_id>/<int:item_id>'
-ROUTE_MENU_ITEM_LIST = '/menu/<int:menu_id>/allitems'
 
 
 #### common messages
@@ -33,10 +32,11 @@ MSG_USER_NOT_FOUND = "User not found."
 MSG_USER_DELETED = "User deleted"
 MSG_INVALID_CREDENTIALS = "Invalid credentials!"
 MSG_USER_LOGGED_OUT = "User successfully logged out"
-MSG_MENU_ALREADY_EXISTS = "An item with name '{}' already exists"
+MSG_MENU_ALREADY_EXISTS = "A menu with name '{}' already exists"
 MSG_ERROR_INSERTING = "An error occurred while inserting the menu"
-MSG_MENU_NOT_FOUND = "Menu not found"
-MSG_MENU_ITEM_NOT_FOUND = "Menu items not found"
+MSG_ITEM_NOT_FOUND = "Item '{}' not found"
+MSG_ITEM_EXISTS = "Item with id '{}' already exists"
+MSG_ITEM_DELETED = "Item with id '{}' deleted"
 MSG_MENU_FOUND = "Menu found"
 MSG_MENU_DELETED = "Menu deleted"
 MSG_MENU_ADDED = "Menu added"

@@ -1,12 +1,14 @@
-from app.extensions import db
 from flask import current_app
+import os
+from app.extensions import db
+
 
 class UserModel(db.Model):
     """
     main model for our userbase, errors are handled in user routes
     """
-    __bindkey__ = 'users'
-    #__tablename__ = "users_table"
+    __bindkey__ = os.environ['POSTGRES_DB']
+    __tablename__ = "users_table"
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), nullable=False, unique=True)

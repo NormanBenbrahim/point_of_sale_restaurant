@@ -65,3 +65,8 @@ No payload required
     "uptime": "2021-10-30 08:58:32"
 }
 ```
+
+
+# Notes
+
+This is the commit that had the complex data type: https://github.com/NormanBenbrahim/point_of_sale_restaurant/commit/500fcbff6764b57d2e264a2f66af34fdfba928fb

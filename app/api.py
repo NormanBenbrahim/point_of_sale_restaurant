@@ -7,7 +7,7 @@ from flask_cors import CORS
 from app.extensions import db, ma
 from app.routes.success import Success
 from app.routes.user import UserRegister, User
-from app.routes.menu import Menu, MenuList, MenuItem
+from app.routes.menu import MenuAdd, MenuItem
 
 
 # setup logger
@@ -61,8 +61,10 @@ def create_app(settings_override=None):
         api.add_resource(User, app.config['ROUTE_USER'])
 
         # menu routes
-        api.add_resource(Menu, app.config['ROUTE_MENU'])
-        api.add_resource(MenuList, app.config['ROUTE_MENU_LIST'])
+        api.add_resource(MenuAdd, app.config['ROUTE_MENU'])
+        api.add_resource(MenuItem, app.config['ROUTE_MENU_ITEM'])
+        #api.add_resource(MenuList, app.config['ROUTE_MENU_LIST'])
+        #api.add_resource(MenuItem, app.config['ROUTE_MENU_ITEM'])
 
         # orders route
 
