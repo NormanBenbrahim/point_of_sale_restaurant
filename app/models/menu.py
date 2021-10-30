@@ -1,5 +1,7 @@
 import os
+import traceback
 from flask import current_app
+from typing import List
 
 from app.extensions import db
 
@@ -27,6 +29,19 @@ class MenuModel(db.Model):
         return cls.query.filter_by(item_id=_id).first()
 
 
+    @classmethod
+    def find_all(cls) -> List['MenuModel']:
+        """
+        utility to find all menus in the database
+        """
+        try:
+            current_app.logger.info("find_all utility called inside menu models")
+            return cls.query.all()
+        
+        except BaseException:
+            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
+
+
     def save_to_db(self) -> None:
         """
         save item to the database
@@ -49,3 +64,15 @@ class MenuModel(db.Model):
         db.session.commit()
 
         current_app.logger.info("Successfully deleted item")
+
+
+    def update_from_db(self, **kwargs) -> None:
+        """
+        update item from database
+        """
+        current_app.logger.info("Updating items from database")
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+        current_app.logger.info("Updated items")

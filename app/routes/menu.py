@@ -13,7 +13,6 @@ from app.extensions import db
 # initiate schemas
 menu_schema = MenuSchema()
 menu_list_schema = MenuSchema(many=True)
-#item_schema = ItemSchema()
 
 
 class MenuAdd(Resource):
@@ -72,16 +71,16 @@ class MenuItem(Resource):
         try:
             current_app.logger.info(f"GET Call to route {current_app.config['ROUTE_MENU_ITEM']}")
 
-            current_app.logger.info("Looking or user in database")
+            current_app.logger.info("Looking or item in database")
             item = MenuModel.find_by_id(item_id)
 
             # handle item not exist
             if not item:
-                current_app.logger.warning(f"User {item_id} not found, caught error")
+                current_app.logger.error(f"Item {item_id} not found, caught error")
                 return {"message": current_app.config['MSG_ITEM_NOT_FOUND'].format(item_id)}, 404
 
-            current_app.logger.info(f"User '{item.item_id}' in '{MenuModel.__tablename__}' database")
-            return {"added": menu_schema.dump(item)}, 200
+            current_app.logger.info(f"Item '{item.item_id}' in '{MenuModel.__tablename__}' database")
+            return menu_schema.dump(item), 200
 
         except BaseException:
             current_app.logger.error(f"There was an error: {traceback.format_exc()}")
@@ -118,7 +117,7 @@ class MenuItem(Resource):
 
 
     @classmethod
-    def put(cls, menu_id: int):
+    def put(cls, item_id: int):
         f"""
         route to update full menu by id
 
@@ -129,32 +128,36 @@ class MenuItem(Resource):
             current_app.logger.info(f"PUT call to route {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU']}")
             
             current_app.logger.info(f"Checking if menu exists")
-            menu = MenuModel.find_by_id(menu_id)
-            # update menu if exists
+            item = MenuModel.find_by_id(item_id)
+            
+            # add item if not exists
+            if item is None:
+                current_app.logger.info(f"Item {item_id} not found, creating")
 
-            if menu is not None:
-                current_app.logger.info(f"Menu {menu_id} found, updating fields")
-
-                # define session
-                #current_app.logger.info(f"Defining session and passing to the load session")
-                #session = scoped_session(sessionmaker(bind=engine))
-
-                #menu = menu_schema.load(request.get_json(), session=session)
-                payload = request.get_json()
-                menu.update_from_db(payload[menu_id])
+                # handle validation errors
+                try:
+                    # define session
+                    current_app.logger.info(f"Defining session and passing to the load session")
+                    session = scoped_session(sessionmaker(bind=engine))
+                    item = menu_schema.load(request.get_json(), session=session)
                 
+                except ValidationError as err:
+                    current_app.logger.error(f"There was an error in your payload: {err.messages}")
+                    return {"message": current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)}, 400
+                
+                current_app.logger.info("Added menu item")
                 return {"message": current_app.config['MSG_MENU_UPDATED']}, 201
 
-            # add new menu
-            current_app.logger.info("Saving menu to database")
-            MenuModel.save_to_db(menu)
+            # update menu
+            current_app.logger.info("Updating menu item to database")
+            item.update_from_db()
 
-            current_app.logger.info(f"Successfully added {menu}")
-            return {"message": current_app.config['MSG_MENU_ADDED']}, 200
-
+            current_app.logger.info(f"Successfully added {item_id}")
+            return {"updated": menu_schema.dump(item)}, 200
 
         except BaseException:
             current_app.logger.error(f"There was an error: {traceback.format_exc()}")
+            return {"There was an unknown error. traceback: ": f"{traceback.format_exc()}"}
 
 
 class MenuList(Resource):
@@ -171,7 +174,7 @@ class MenuList(Resource):
         """
         try:
             current_app.logger.info(f"GET call to route {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU_LIST']}")
-            return {"menus": menu_list_schema.dump(MenuModel.find_all())}, 200
+            return {"items": menu_list_schema.dump(MenuModel.find_all())}, 200
 
         except BaseException:
             current_app.logger.error(f"There was an error: {traceback.format_exc()}")

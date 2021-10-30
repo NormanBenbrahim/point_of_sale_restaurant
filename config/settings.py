@@ -20,9 +20,9 @@ ROUTE_USER = '/user/<int:user_id>'
 ROUTE_LOGIN = '/login'
 ROUTE_LOGOUT = '/logout'
 ROUTE_REFRESH = '/refresh'
-ROUTE_MENU = '/add'
+ROUTE_MENU = '/additem'
 ROUTE_MENU_ITEM = '/menu/<int:item_id>'
-ROUTE_MENU_LIST = '/allmenus'
+ROUTE_MENU_LIST = '/allitems'
 
 
 #### common messages
