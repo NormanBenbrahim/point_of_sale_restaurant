@@ -13,4 +13,4 @@ RUN pip install -r requirements.txt
 
 COPY . . 
 
-CMD gunicorn -w 4 -b 0.0.0.0:8000 --access-logfile - "api.all:create_app()"
+CMD gunicorn -w 4 -b 0.0.0.0:${PORT} --access-logfile - "api.all:create_app()"

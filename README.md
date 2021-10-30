@@ -2,37 +2,66 @@
 
 Built with the most recent stable version of Python (3.9.0)
 
-# Design
 
-I chose to go with Flask with a SQL based database just because that's what I know
+# Running the API
 
-I started by building out a simple toy API and built out the full devops pipeline from the beginning on it. This way CI/CD is managed from project initiation - less headaches down the road
+First make sure to go into the `.env-example` file and set the variables
 
-I chose to launch this on a Kubernetes cluster on GCP using [SERVICE TO BE DETERMINED] as CI/CD
+Then you can use the utility scripts  in `util/` to run the api. I have only tested this on an Ubuntu 20.04 Desktop
 
-# Extensions
+The URL will be `0.0.0.0:8000`
 
-In the main `app/` folder I included an `extensions.py` file which is where I add extensions to flask. I started with a flask debug toolbar
 
-# Local Test
+## Without a container
 
-## Non-Container Test
-
-I like doing this especially when I first create the applications before containerizing as a sanity check
-
-There is a utility script `util/start-local.sh` you can use. Tested on Ubuntu 20.04 Desktop
-
-[ADD STEPS HERE AFTER MAKING SCRIPT]
-
-## Container Test
-
-This should work out of the box on a Linux system with Docker installed, tested on Ubuntu 20.04 Desktop
+Inside your python 3.9.0 virtual environment run
 
 ```
-cp .env-example .env
-docker-compose up --build
+mv .env-example
+.env
+pip install -r requirements-dev.txt
+./util/start-dev.sh
 ```
 
-# GCP Test
+## With a container
 
-[ADD STEPS HERE]
+Ensure you have `docker-compose` installed and please be advised that **this script will delete any other containers you may have open**
+
+```
+mv .env-example
+.env
+./util/start-docker.sh
+```
+
+This builds everything from scratch
+
+If you want to build from cache after the first time you run the above script just add a command line argument (any argument string will work, I like to use `cache`)
+
+```
+./util/start-docker.sh cache
+```
+
+There is also a `cleanup.sh` script that you can use to clean your system of any dangling images that may slow down your system
+
+
+# Calling the API
+
+In Postman you can use the following routes:
+
+### Make sure the API is up
+
+**Request**
+Make the following request
+```
+GET 0.0.0.0:8000/
+```
+
+No payload required
+
+**Expected Response**
+```
+{
+    "status": "up",
+    "uptime": "2021-10-30 08:58:32"
+}
+```
