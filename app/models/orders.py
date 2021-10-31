@@ -1,9 +1,7 @@
 import os
 from typing import List
-from flask import current_app, json
+from flask import current_app
 from sqlalchemy.orm import backref
-from sqlalchemy.types import TypeDecorator, VARCHAR
-from sqlalchemy.ext.mutable import Mutable
 
 from app.extensions import db, app_error
 
@@ -41,7 +39,7 @@ class OrderModel(db.Model):
         """
         try:
             current_app.logger.info("find_all utility called inside order models")
-            return cls.query_all()
+            return cls.query.all()
 
         except BaseException:
             current_app.logger.error(app_error(nondict=True))
@@ -63,6 +61,7 @@ class OrderModel(db.Model):
         except BaseException:
             current_app.logger.error(app_error(nondict=True))
             return app_error()
+
 
     def delete_from_db(self) -> None:
         """

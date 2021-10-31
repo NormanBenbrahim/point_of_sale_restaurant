@@ -14,7 +14,7 @@ def app():
         'TESTING': True
     }
 
-    _app = create_app(settings_overrite=params)
+    _app = create_app(settings_override=params)
 
     # give the app context
     context = _app.app_context()

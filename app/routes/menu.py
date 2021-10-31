@@ -1,14 +1,15 @@
 from flask_restful import Resource
-from flask import app, request, current_app
+from flask import request, current_app
 from sqlalchemy import engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from marshmallow import ValidationError
+from werkzeug.exceptions import BadRequest
 
 from app.models.menu import MenuModel
 from app.models.orders import OrderModel
 from app.schemas.menu import MenuSchema
 from app.schemas.orders import OrderSchema
-from app.extensions import db, app_error
+from app.extensions import db, app_error, check_payload
 
 
 # initiate schemas
@@ -33,6 +34,8 @@ class MenuAdd(Resource):
         try:
             current_app.logger.info(f"GET call to route {current_app.config['ROUTE_MENU']}")
 
+            check_payload()
+
             current_app.logger.info(f"Looking for menu in database")
 
             # validation error separately to return custom error messages
@@ -45,7 +48,11 @@ class MenuAdd(Resource):
             except ValidationError as err:
                 msg = current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)
                 current_app.logger.error(msg)
-                return {"message": msg}, 400                
+                return {"message": msg}, 400
+            except BadRequest as err: 
+                msg = current_app.config['MSG_VALIDATION_ERROR'].format(err)
+                current_app.logger.error(msg)
+                return {"message": msg}, 400                             
 
             if MenuModel.find_by_id(item.item_id):
                 msg = current_app.config['MSG_ITEM_EXISTS'].format(item.item_id)
@@ -155,8 +162,12 @@ class MenuItem(Resource):
                 
                 except ValidationError as err:
                     msg = current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)
-                    current_app.logger.warning(msg)
+                    current_app.logger.error(msg)
                     return {"message": msg}, 400
+                except BadRequest as err: 
+                    msg = current_app.config['MSG_VALIDATION_ERROR'].format(err)
+                    current_app.logger.error(msg)
+                    return {"message": msg}, 400 
                 
                 current_app.logger.info("Added menu item")
                 return {"message": current_app.config['MSG_MENU_UPDATED']}, 201
@@ -219,7 +230,11 @@ class OrderAdd(Resource):
             except ValidationError as err:
                 msg = current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)
                 current_app.logger.error(msg)
-                return {"message": msg}, 404
+                return {"message": msg}, 400
+            except BadRequest as err: 
+                msg = current_app.config['MSG_VALIDATION_ERROR'].format(err)
+                current_app.logger.error(msg)
+                return {"message": msg}, 400 
 
             # check if order with order id already exists in the database
             if OrderModel.find_by_id(order.order_id):

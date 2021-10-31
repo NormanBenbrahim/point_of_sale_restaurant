@@ -2,7 +2,7 @@ import os
 
 
 ##### helps to debug 
-WHICHINSTANCE = "prod config"
+WHICHINSTANCE = " config"
 DEBUG = False # in prod change this
 
 

@@ -30,6 +30,7 @@ ROUTE_ORDER_LIST = '/all-orders'
 
 
 #### common messages
+MSG_PAYLOAD_EMPTY = 'No input provided'
 MSG_USER_ALREADY_EXISTS = "A user with that username already exists"
 MSG_CREATED_SUCCESSFULLY = "User created successfully"
 MSG_USER_NOT_FOUND = "User not found."

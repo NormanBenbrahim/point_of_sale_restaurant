@@ -40,6 +40,7 @@ class MenuModel(db.Model):
             return cls.query.all()
         
         except BaseException:
+            current_app.logger.error(app_error(nondict=True))
             return app_error()
 
 
