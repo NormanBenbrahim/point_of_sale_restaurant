@@ -5,6 +5,7 @@ import os
 WHICHINSTANCE = "dev config"
 DEBUG = True # in prod change this
 
+
 ##### cors
 CORS_HEADER = 'Content-Type'
 
@@ -20,9 +21,12 @@ ROUTE_USER = '/user/<int:user_id>'
 ROUTE_LOGIN = '/login'
 ROUTE_LOGOUT = '/logout'
 ROUTE_REFRESH = '/refresh'
-ROUTE_MENU = '/additem'
+ROUTE_MENU = '/add-item'
 ROUTE_MENU_ITEM = '/menu/<int:item_id>'
-ROUTE_MENU_LIST = '/allitems'
+ROUTE_MENU_LIST = '/all-items'
+ROUTE_ORDER = '/add-order'
+ROUTE_ORDER_ITEM = '/order/<int:order_id>'
+ROUTE_ORDER_LIST = '/all-orders'
 
 
 #### common messages
@@ -37,27 +41,15 @@ MSG_ERROR_INSERTING = "An error occurred while inserting the menu"
 MSG_ITEM_NOT_FOUND = "Item '{}' not found"
 MSG_ITEM_EXISTS = "Item with id '{}' already exists"
 MSG_ITEM_DELETED = "Item with id '{}' deleted"
-MSG_MENU_FOUND = "Menu found"
-MSG_MENU_DELETED = "Menu deleted"
-MSG_MENU_ADDED = "Menu added"
-MSG_MENU_UPDATED = "Menu updated"
-MSG_MENU_INPUT_EMPTY = "No menu given"
+MSG_ORDER_EXISTS = "Order with id '{}' already exists"
 MSG_VALIDATION_ERROR = "There was an error in your payload input: {}"
 
 
 ##### databases
 db_uri = 'postgresql://{0}:{1}@postgres:5432/{2}'
-# bindkeys
-USERS = 'users'
-MENUS = 'menus'
 # root url (users)
 SQLALCHEMY_DATABASE_URI = db_uri.format(os.environ['POSTGRES_USER'],
                                         os.environ['POSTGRES_PASSWORD'],
                                         os.environ['POSTGRES_DB'])
 
 SQLALCHEMY_TRACK_MODIFICATIONS = False
-# SQLALCHEMY_BINDS = {
-#     MENUS: db_uri.format(os.environ['POSTGRES_USER'],
-#                         os.environ['POSTGRES_PASSWORD'],
-#                         os.environ['POSTGRES_DB_MENU'])
-# }

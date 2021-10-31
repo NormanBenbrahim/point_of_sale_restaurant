@@ -6,13 +6,16 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from marshmallow import ValidationError
 
 from app.models.menu import MenuModel
+from app.models.orders import OrderModel
 from app.schemas.menu import MenuSchema
-from app.extensions import db
+from app.schemas.orders import OrderSchema
+from app.extensions import db, app_error
 
 
 # initiate schemas
 menu_schema = MenuSchema()
 menu_list_schema = MenuSchema(many=True)
+order_schema = OrderSchema()
 
 
 class MenuAdd(Resource):
@@ -34,6 +37,8 @@ class MenuAdd(Resource):
 
             # validation error separately to return custom error messages
             try:
+                current_app.logger.info(f"Defining session and passing to the load session")
+                #session = scoped_session(sessionmaker(bind=engine))
                 session = db.session()
                 item = menu_schema.load(request.get_json(), session=session)
 
@@ -53,7 +58,8 @@ class MenuAdd(Resource):
             return {"added": menu_schema.dump(item)}, 200        
         
         except BaseException:     
-            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
+            current_app.logger.error(f"There was an application error: {traceback.format_exc()}")
+            return app_error()
 
 
 class MenuItem(Resource):
@@ -76,14 +82,15 @@ class MenuItem(Resource):
 
             # handle item not exist
             if not item:
-                current_app.logger.error(f"Item {item_id} not found, caught error")
+                current_app.logger.warning(f"Item {item_id} not found, caught error")
                 return {"message": current_app.config['MSG_ITEM_NOT_FOUND'].format(item_id)}, 404
 
             current_app.logger.info(f"Item '{item.item_id}' in '{MenuModel.__tablename__}' database")
             return menu_schema.dump(item), 200
 
         except BaseException:
-            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
+            current_app.logger.error(f"There was an application error: {traceback.format_exc()}")
+            return app_error()
 
 
     @classmethod
@@ -113,7 +120,8 @@ class MenuItem(Resource):
             return {"message": current_app.config['MSG_ITEM_DELETED'].format(item_id)}, 200
 
         except BaseException:
-            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
+            current_app.logger.error(f"There was an application error: {traceback.format_exc()}")
+            return app_error()
 
 
     @classmethod
@@ -142,7 +150,7 @@ class MenuItem(Resource):
                     item = menu_schema.load(request.get_json(), session=session)
                 
                 except ValidationError as err:
-                    current_app.logger.error(f"There was an error in your payload: {err.messages}")
+                    current_app.logger.warning(f"There was an error in your payload: {err.messages}")
                     return {"message": current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)}, 400
                 
                 current_app.logger.info("Added menu item")
@@ -156,8 +164,8 @@ class MenuItem(Resource):
             return {"updated": menu_schema.dump(item)}, 200
 
         except BaseException:
-            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
-            return {"There was an unknown error. traceback: ": f"{traceback.format_exc()}"}
+            current_app.logger.error(f"There was an application error: {traceback.format_exc()}")
+            return app_error()
 
 
 class MenuList(Resource):
@@ -177,4 +185,66 @@ class MenuList(Resource):
             return {"items": menu_list_schema.dump(MenuModel.find_all())}, 200
 
         except BaseException:
-            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
+            current_app.logger.error(f"There was an application error: {traceback.format_exc()}")
+            return {"There was an application error. traceback: ": f"{traceback.format_exc()}"}
+
+
+class OrderAdd(Resource):
+    """
+    restful interface to add orders by id
+    """
+    @classmethod
+    def post(cls):
+        f"""
+        route to place an order with a list of ids
+
+        postman request:
+        POST {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_ORDER']}
+        """
+        try:
+            current_app.logger.info(f"POST call to route {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_ORDER']}")
+
+            # validation error separately to return custom error messages
+            try:
+                current_app.logger.info(f"Defining session and passing to the load session")
+                #session = scoped_session(sessionmaker(bind=engine))
+                session = db.session()
+                order = order_schema.load(request.get_json(), session=session)
+
+            except ValidationError as err:
+                current_app.logger.error(f"There was an error in your payload: {err.messages}")
+                return {"message": current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)}, 404
+
+            # check if order with order id already exists in the database
+            if OrderModel.find_by_id(order.order_id):
+                return {"message": current_app.config['MSG_ORDER_EXISTS'].format(order.order_id)}, 400
+            
+            # check if the payment amount is enough for the order
+            current_app.logger.info("Checking if payment is correct for the items")
+
+            total_due = 0
+            for item in order['items']:
+                menu_item = MenuModel.find_by_id(item['item_id'])
+                if not menu_item:
+                    current_app.logger.warning(f"order {order.order_id} has invalid menu item (not exist): {item['item_id']}")
+                    return {f"order {order.order_id}": current_app.config['MSG_ITEM_NOT_FOUND'].format(item['item_id'])}
+                
+                values = menu_schema.dump(menu_item)
+                if item['quantity'] > values['quantity']:
+                    current_app.logger.warning(f"Insufficient quantity for item {item['item_id']} on order {order.order_id}")
+                    return {"message": f"Insufficient quantity for item with id {item['item_id']}, there are {values['quantity']} available on the menu"}, 400
+                
+                total_due += values['price']*item['quantity']
+            
+            if total_due > order['payment_amount']:
+                current_app.logger.warning(f"Payment insufficient on order {order.order_id}")
+                return {"message": f"Payment insufficient. Total due: ${total_due}, \
+                                     payment amount: ${order['payment_amount']}, remaining amount due: ${total_due-order['payment_amount']}"}, 400
+
+            current_app.logger.info("Saving to database")
+            OrderModel.save_to_db(order)
+
+            return {"added": order_schema.dump(order)}, 200
+
+        except BaseException:
+            return app_error()

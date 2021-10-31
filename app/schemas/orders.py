@@ -1,44 +1,93 @@
-from typing_extensions import Required
-from marshmallow import fields, validate, ValidationError 
+from marshmallow.exceptions import ValidationError
+from app.models.orders import ItemIDsModel, OrderModel
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from marshmallow import fields, validates
 
-from app.extensions import marshmallow
-from app.models.orders import Orders
+from app.extensions import db
 
 
-def ensure_unique_identity(data):
+class Nested(fields.Nested):
     """
-    helper function to make sure orders are unique
-    """
-    orders = Orders.find_by_identity(data)
-
-    if user:
-        raise ValidationError(f'{data} already exists')
-
-    return data
-
-def ensure_correct_order(order):
-    """
-    helper function to make sure the order amount is correct
-    """
-    pass
-
-
-class OrdersSchema(marshmallow.Schema):
-    """
-    orders schema should contain 
-        -list of item ids with quantity
-        -payment amount
-        -order note
+    as far as i know deserializing nested objects is still an outstanding issue
+    for the marshmallow team, so we need a custom nested object
     
-    creating successful order should return order id
-    Each route should perform business logic validation to prevent common errors. 
-    The order endpoint specifically should enforce payment correctness, and item availability.
+    see:
+    https://github.com/marshmallow-code/marshmallow-sqlalchemy/issues/67
+    https://stackoverflow.com/questions/63267893/sqlalchemyautoschema-nested-deserialization
     """
-    # assume someone can have the same order note for multiple orders if they repeat orders a lot
-    order_note = fields.Str(required=True)
 
+    def _deserialize(self, *args, **kwargs):
+        if hasattr(self.schema, "session"):
+            self.schema.session = db.session  # overwrite session here
+            self.schema.transient = self.root.transient
+        return super()._deserialize(*args, **kwargs)
+
+
+class ItemIDs(SQLAlchemyAutoSchema):
+    """
+    item ids
+    """
+    item_id = fields.Integer(required=True)
+    quantity = fields.Integer(required=True)
+
+
+    @validates('quantity')
+    def validate_quantity(self, quantity):
+        if quantity <= 0:
+            raise ValidationError("quantity must be greater than 0")
+
+
+    @validates('item_id')
+    def validate_item_id(self, item_id):
+        if item_id < 0:
+            raise ValidationError("item_id cannot be negative")
+
+
+    class Meta:
+        model = ItemIDsModel
+        load_instance = True
+        include_fk = True
+
+
+class OrderSchema(SQLAlchemyAutoSchema):
+    """
+    orders
+
+    sample:
+    {
+    "payment_amount": "34.99", 
+    "order_note": "a bunch of food", 
+    "order_id": "1",
+    "items": [{"item_id": "2", "quantity": "2", "order_id": "1"}]
+    }
+    """
+    order_id = fields.Integer(required=True)
+    order_note = fields.String(required=True)
     payment_amount = fields.Float(required=True)
+    items = Nested(ItemIDs, many=True, required=True)
 
-    items = fields.Dict(required=True, keys=fields.Str(), values=fields.Str())
 
-    #id = fields.Int(required=True)
+    # error handling
+    @validates('payment_amount')
+    def validate_payment_amount(self, payment_amount):
+        if payment_amount < 0:
+            raise ValidationError("'payment_amount' must be greater than 0")
+
+
+    @validates('order_note')
+    def validate_order_note(self, note):
+        if note.strip() == "":
+            raise ValidationError("'order_note' cannot be empty")
+
+
+    @validates('order_id')
+    def validate_order_id(self, order_id):
+        if order_id < 0:
+            raise ValidationError("'order_id' must not be negative")
+
+
+    class Meta:
+        model = OrderModel
+        load_instance = True
+        include_relationships = True
+        include_fk = True

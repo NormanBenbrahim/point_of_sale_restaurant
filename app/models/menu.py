@@ -4,6 +4,7 @@ from flask import current_app
 from typing import List
 
 from app.extensions import db
+from app.extensions import app_error
 
 
 class MenuModel(db.Model):
@@ -14,7 +15,7 @@ class MenuModel(db.Model):
     __tablename__ = "menu_table"
 
     item_id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.String(80))
+    description = db.Column(db.String(150))
     price = db.Column(db.Float())
     quantity = db.Column(db.Integer())
 
@@ -24,7 +25,7 @@ class MenuModel(db.Model):
         """
         utility to search for item, see routes for usage
         """
-        current_app.logger.info("find_by_id subroutine called")
+        current_app.logger.info("find_by_id subroutine called inside menu model")
         
         return cls.query.filter_by(item_id=_id).first()
 
@@ -39,7 +40,7 @@ class MenuModel(db.Model):
             return cls.query.all()
         
         except BaseException:
-            current_app.logger.error(f"There was an error: {traceback.format_exc()}")
+            return app_error()
 
 
     def save_to_db(self) -> None:

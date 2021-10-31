@@ -4,10 +4,10 @@ from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
 
-from app.extensions import db, ma
+from app.extensions import db, ma, app_error
 from app.routes.success import Success
 from app.routes.user import UserRegister, User
-from app.routes.menu import MenuAdd, MenuItem, MenuList
+from app.routes.menu import MenuAdd, MenuItem, MenuList, OrderAdd
 
 
 # setup logger
@@ -47,10 +47,7 @@ def create_app(settings_override=None):
         app.logger.info("Creating database tables")
         @app.before_first_request
         def create_tables():
-            db.create_all()
-        
-        app.logger.info("Databases: ")
-        
+            db.create_all()        
 
         # add routes, '/' first is best practice
         app.logger.info("Loading restful routes")
@@ -65,7 +62,8 @@ def create_app(settings_override=None):
         api.add_resource(MenuItem, app.config['ROUTE_MENU_ITEM'])
         api.add_resource(MenuList, app.config['ROUTE_MENU_LIST'])
 
-        # orders route
+        # order routes
+        api.add_resource(OrderAdd, app.config['ROUTE_ORDER'])
 
         app.logger.info("API ready")
         return app
@@ -73,6 +71,7 @@ def create_app(settings_override=None):
     # base exception to catch everything
     except BaseException:
         app.logger.error(f"There was an error: {traceback.format_exc()}")
+        return app_error()
 
 
 def extensions(app):
