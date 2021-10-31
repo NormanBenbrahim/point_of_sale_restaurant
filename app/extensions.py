@@ -16,4 +16,4 @@ def app_error(nondict=False):
     if nondict:
         f"There was an application error. traceback: {traceback.format_exc()}"
     
-    return {"There was an application error. traceback: ": f"{traceback.format_exc()}"} 
+    return {"There was an application error. traceback: ": f"{traceback.format_exc()}"}, 400

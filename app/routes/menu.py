@@ -226,10 +226,11 @@ class OrderAdd(Resource):
                 return {"message": current_app.config['MSG_ORDER_EXISTS'].format(order.order_id)}, 400
             
             # check if the payment amount is enough for the order
-            current_app.logger.info("Checking if payment is correct for the items")
+            current_app.logger.info("Checking if payment is correct & there is enough quantity in stock")
 
             order_dump = order_schema.dump(order)
             total_due = 0
+            all_updated_items = []
             for item in order_dump['items']:
                 menu_item = MenuModel.find_by_id(item['item_id'])
                 if not menu_item:
@@ -237,23 +238,48 @@ class OrderAdd(Resource):
                     current_app.logger.warning(msg)
                     return {f"message": msg}, 404
                 
-                values = menu_schema.dump(menu_item)
-                if item['quantity'] > values['quantity']:
+                # check quantities
+                menu_items = menu_schema.dump(menu_item)
+                if item['quantity'] > menu_items['quantity']:
                     msg = current_app.config['MSG_ITEM_INSUFFICIENT'].format(item['item_id'], order.order_id)
                     current_app.logger.warning(msg)
                     return {"message": msg}, 400
                 
-                total_due += values['price']*item['quantity']
+                # update total amount due
+                total_due += menu_items['price']*item['quantity']
+
+                # collect updated menu schemas to update the menu after checking price
+                current_app.logger.info(f"Menu before: {menu_items}")
+                new_quantity = menu_items['quantity'] - item['quantity']
+                menu_items['quantity'] = new_quantity
+                current_app.logger.info(f"Menu after: {menu_items}")
+                current_app.logger.info(f"Loading updated schema & adding to list for later")
+                updated_item = menu_schema.load(menu_items, session=session)
+                all_updated_items.append(updated_item)
             
-            if total_due > order['payment_amount']:
-                remaining = total_due-order['payment_amount']
+            # 2 cases, either they underpaid or overpaid
+            if total_due > order_dump['payment_amount']:
+                remaining = total_due - order_dump['payment_amount']
                 msg = current_app.config['MSG_PAYMENT_INSUFFICIENT'].format(total_due,
-                                                                            order['payment_amount'],
+                                                                            order_dump['payment_amount'],
                                                                             remaining)
                 current_app.logger.warning(msg)
-                return {"error mesage": msg}, 200
+                return {"mesage": msg}, 400
 
-            current_app.logger.info("Saving to database")
+            if total_due < order_dump['payment_amount']:
+                remaining = order_dump['payment_amount'] - total_due
+                msg = current_app.config['MSG_PAYMENT_OVERCHARGE'].format(total_due,
+                                                                          order_dump['payment_amount'],
+                                                                          remaining)
+                current_app.logger.warning(msg)
+                return {"message": msg}, 400
+
+            # update the menu items
+            current_app.logger.info("Updating menu items")
+            for update_this in all_updated_items:
+                update_this.update_from_db()
+
+            current_app.logger.info("Saving order to database")
             OrderModel.save_to_db(order)
 
             return {"added": order_dump}, 200

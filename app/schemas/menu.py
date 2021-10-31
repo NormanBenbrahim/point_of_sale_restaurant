@@ -9,6 +9,14 @@ from app.extensions import db
 class MenuSchema(SQLAlchemyAutoSchema):
     """
     item schema
+
+    sample:
+    {
+        "item_id": "1",
+        "description": "a royale with cheese",
+        "price": "9.99",
+        "quantity": "12"
+    }
     """
     item_id = fields.Integer(required=True)
     description = fields.String(required=True)

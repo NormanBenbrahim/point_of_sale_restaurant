@@ -31,6 +31,7 @@ class OrderModel(db.Model):
             return cls.query.filter_by(order_id=__id).first()
 
         except BaseException:
+            current_app.logger.error(app_error(nondict=True))
             return app_error()
 
     @classmethod
@@ -43,6 +44,7 @@ class OrderModel(db.Model):
             return cls.query_all()
 
         except BaseException:
+            current_app.logger.error(app_error(nondict=True))
             return app_error()
 
 
@@ -50,24 +52,33 @@ class OrderModel(db.Model):
         """
         save order to the database
         """
-        current_app.logger.info("Adding order to database")
-        
-        db.session.add(self)
-        db.session.commit()
+        try:
+            current_app.logger.info("Adding order to database")
+            
+            db.session.add(self)
+            db.session.commit()
 
-        current_app.logger.info("Successfully added order")
+            current_app.logger.info("Successfully added order")
 
+        except BaseException:
+            current_app.logger.error(app_error(nondict=True))
+            return app_error()
 
     def delete_from_db(self) -> None:
         """
         delete order from the database
         """
-        current_app.logger.info("Deleting order from database")
+        try:
+            current_app.logger.info("Deleting order from database")
 
-        db.session.delete(self)
-        db.session.commit()
+            db.session.delete(self)
+            db.session.commit()
 
-        current_app.logger.info("Successfully deleted order")
+            current_app.logger.info("Successfully deleted order")
+
+        except BaseException:
+            current_app.logger.error(app_error(nondict=True))
+            return app_error()
 
 
 class ItemIDsModel(db.Model):

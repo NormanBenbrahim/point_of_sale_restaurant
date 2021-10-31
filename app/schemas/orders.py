@@ -55,10 +55,14 @@ class OrderSchema(SQLAlchemyAutoSchema):
 
     sample:
     {
-    "payment_amount": "34.99", 
-    "order_note": "a bunch of food", 
-    "order_id": "1",
-    "items": [{"item_id": "2", "quantity": "2", "order_id": "1"}]
+        "payment_amount": "34.99", 
+        "order_note": "a bunch of food", 
+        "order_id": "1",
+        "items": [
+            {"item_id": "1", "quantity": "1", "order_id": "1"},
+            {"item_id": "2", "quantity": "2", "order_id": "1"},
+            {"item_id": "3", "quantity": "4", "order_id": "1"}
+            ]
     }
     """
     order_id = fields.Integer(required=True)
