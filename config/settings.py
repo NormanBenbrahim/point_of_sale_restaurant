@@ -1,21 +1,21 @@
 import os
 
 
-##### helps to debug 
+# helps to debug
 WHICHINSTANCE = "dev config"
-DEBUG = True # in prod change this
+DEBUG = True  # in prod change this
 
 
-##### cors
+# cors
 CORS_HEADER = 'Content-Type'
 
 
-##### main url
+# main url
 SERVER_NAME = '0.0.0.0:8000'
 
 
-##### endpoints for routes
-ROUTE_SUCCESS =  '/'
+# endpoints for routes
+ROUTE_SUCCESS = '/'
 ROUTE_USER_REGISTER = '/register'
 ROUTE_USER = '/user/<int:user_id>'
 ROUTE_LOGIN = '/login'
@@ -29,7 +29,7 @@ ROUTE_ORDER_ITEM = '/order/<int:order_id>'
 ROUTE_ORDER_LIST = '/all-orders'
 
 
-#### common messages
+# common messages
 MSG_PAYLOAD_EMPTY = 'No input provided'
 MSG_USER_ALREADY_EXISTS = "A user with that username already exists"
 MSG_CREATED_SUCCESSFULLY = "User created successfully"
@@ -45,13 +45,17 @@ MSG_ITEM_DELETED = "Item with id '{}' deleted"
 MSG_ITEM_ADDED = "Item '{}' added"
 MSG_ORDER_EXISTS = "Order with id '{}' already exists"
 MSG_VALIDATION_ERROR = "There was an error in your payload input: {}"
-MSG_ITEM_INSUFFICIENT = "Insufficient quantity for item with id {}, there are {} available on the menu"
-MSG_PAYMENT_INSUFFICIENT = "Payment insufficient. Total due: ${}, payment amount: ${}, remaining amount due: ${}"
-MSG_PAYMENT_OVERCHARGE = "Overcharging for order. Total due: ${}, payment_amount: ${}, overcharged by: ${}"
+MSG_ITEM_INSUFFICIENT = "Insufficient quantity for item with id {}, there are {} \
+    available on the menu"
+MSG_PAYMENT_INSUFFICIENT = "Payment insufficient. Total due: ${}, payment amount: ${}, \
+    remaining amount due: ${}"
+MSG_PAYMENT_OVERCHARGE = "Overcharging for order. Total due: ${}, payment_amount: ${}, \
+    overcharged by: ${}"
 
 
-##### databases
+# databases
 db_uri = 'postgresql://{0}:{1}@postgres:5432/{2}'
+
 # root url (users)
 SQLALCHEMY_DATABASE_URI = db_uri.format(os.environ['POSTGRES_USER'],
                                         os.environ['POSTGRES_PASSWORD'],

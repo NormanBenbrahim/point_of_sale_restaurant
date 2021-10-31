@@ -18,14 +18,14 @@ class OrderModel(db.Model):
     order_note = db.Column(db.String(150))
     payment_amount = db.Column(db.Float)
 
-    
     @classmethod
     def find_by_id(cls, __id: int) -> "OrderModel":
         """
         utility to find order by id
         """
         try:
-            current_app.logger.info("find_by_id utility called inside ordermodel")
+            msg = "find_by_id utility called inside ordermodel"
+            current_app.logger.info(msg)
             return cls.query.filter_by(order_id=__id).first()
 
         except BaseException:
@@ -38,13 +38,13 @@ class OrderModel(db.Model):
         utility to find all orders in the database
         """
         try:
-            current_app.logger.info("find_all utility called inside order models")
+            msg = "find_all utility called inside order models"
+            current_app.logger.info(msg)
             return cls.query.all()
 
         except BaseException:
             current_app.logger.error(app_error(nondict=True))
             return app_error()
-
 
     def save_to_db(self) -> None:
         """
@@ -52,7 +52,7 @@ class OrderModel(db.Model):
         """
         try:
             current_app.logger.info("Adding order to database")
-            
+
             db.session.add(self)
             db.session.commit()
 
@@ -61,7 +61,6 @@ class OrderModel(db.Model):
         except BaseException:
             current_app.logger.error(app_error(nondict=True))
             return app_error()
-
 
     def delete_from_db(self) -> None:
         """

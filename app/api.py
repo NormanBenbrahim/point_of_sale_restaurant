@@ -1,4 +1,3 @@
-import traceback
 import logging
 from flask import Flask
 from flask_restful import Api
@@ -11,8 +10,10 @@ from app.routes.menu import MenuAdd, MenuItem, MenuList, OrderAdd, OrderList
 
 
 # setup logger
-logging.basicConfig(level=logging.INFO, # change to info in prod, add this to config later
-                    format=f'%(asctime)s [%(levelname)s] %(pathname)s (line %(lineno)d) : %(message)s')
+format = "%(asctime)s [%(levelname)s] %(pathname)s \
+    (line %(lineno)d) : %(message)s"
+logging.basicConfig(level=logging.INFO,
+                    format=format)
 
 
 def create_app(settings_override=None):
@@ -38,7 +39,7 @@ def create_app(settings_override=None):
         # add extensions
         app.logger.info("Loading extensions")
         extensions(app)
-        
+
         # make api
         app.logger.info("Loading restful interface")
         api = Api(app)
@@ -47,7 +48,7 @@ def create_app(settings_override=None):
         @app.before_first_request
         def create_tables():
             app.logger.info("Creating database tables")
-            db.create_all()        
+            db.create_all()
 
         # add routes, '/' first is best practice
         app.logger.info("Loading restful routes")
@@ -82,7 +83,7 @@ def extensions(app):
     db.init_app(app)
     ma.init_app(app)
 
-    return None 
+    return None
 
 
 if __name__ == '__main__':
@@ -91,11 +92,11 @@ if __name__ == '__main__':
         from dotenv import load_dotenv
 
         load_dotenv()
-        
-        POSTGRES_USER=os.environ['POSTGRES_USER']
-        print("POSTGRES USER:" +POSTGRES_USER)
-        POSTGRES_PASSWORD=os.environ['POSTGRES_PASSWORD']
-        POSTGRES_DB=os.environ['POSTGRES_DB']
+
+        POSTGRES_USER = os.environ['POSTGRES_USER']
+        print("POSTGRES USER:" + POSTGRES_USER)
+        POSTGRES_PASSWORD = os.environ['POSTGRES_PASSWORD']
+        POSTGRES_DB = os.environ['POSTGRES_DB']
         db_uri = 'postgresql://{0}:{1}@postgres:5432/{2}'.format(
             POSTGRES_USER,
             POSTGRES_PASSWORD,

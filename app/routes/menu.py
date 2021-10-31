@@ -9,7 +9,7 @@ from app.models.menu import MenuModel
 from app.models.orders import OrderModel
 from app.schemas.menu import MenuSchema
 from app.schemas.orders import OrderSchema
-from app.extensions import db, app_error, check_payload
+from app.extensions import db, app_error
 
 
 # initiate schemas
@@ -29,43 +29,46 @@ class MenuAdd(Resource):
         route to add a menu item by id
 
         postman request:
-        POST {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU']}
+        POST {current_app.config['ROUTE_MENU']}
         """
         try:
-            current_app.logger.info(f"GET call to route {current_app.config['ROUTE_MENU']}")
+            msg = f"GET call to route {current_app.config['ROUTE_MENU']}"
+            current_app.logger.info(msg)
 
-            check_payload()
-
-            current_app.logger.info(f"Looking for menu in database")
+            current_app.logger.info("Looking for menu in database")
 
             # validation error separately to return custom error messages
             try:
-                current_app.logger.info(f"Defining session and passing to the load session")
-                #session = scoped_session(sessionmaker(bind=engine))
+                msg = "Defining session and passing to the load session"
+                current_app.logger.info()
                 session = db.session()
                 item = menu_schema.load(request.get_json(), session=session)
 
             except ValidationError as err:
-                msg = current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)
-                current_app.logger.error(msg)
+                msg = current_app.config['MSG_VALIDATION_ERROR']
+                msg2 = msg.format(err.messages)
+                current_app.logger.error(msg2)
                 return {"message": msg}, 400
-            except BadRequest as err: 
-                msg = current_app.config['MSG_VALIDATION_ERROR'].format(err)
-                current_app.logger.error(msg)
-                return {"message": msg}, 400                             
+            except BadRequest as err:
+                msg = current_app.config['MSG_VALIDATION_ERROR']
+                msg2 = msg.format(err)
+                current_app.logger.error(msg2)
+                return {"message": msg}, 400
 
             if MenuModel.find_by_id(item.item_id):
-                msg = current_app.config['MSG_ITEM_EXISTS'].format(item.item_id)
-                current_app.logger.warning(msg)
+                msg = current_app.config['MSG_ITEM_EXISTS']
+                msg2 = msg.format(item.item_id)
+                current_app.logger.warning(msg2)
                 return {"message": msg}, 200
 
             current_app.logger.info("Saving item to database")
             MenuModel.save_to_db(item)
 
-            current_app.logger.info(f"Menu '{item.item_id}' in '{MenuModel.__tablename__}' database")
-            return {"added": menu_schema.dump(item)}, 200        
-        
-        except BaseException:     
+            msg = f"Menu '{item.item_id}' in '{MenuModel.__tablename__}'"
+            current_app.logger.info(msg)
+            return {"added": menu_schema.dump(item)}, 200
+
+        except BaseException:
             current_app.logger.error(app_error(nondict=True))
             return app_error()
 
@@ -80,10 +83,11 @@ class MenuItem(Resource):
         route to lookup a menu item
 
         postman request:
-        GET {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU_ITEM']}
+        GET {current_app.config['ROUTE_MENU_ITEM']}
         """
         try:
-            current_app.logger.info(f"GET Call to route {current_app.config['ROUTE_MENU_ITEM']}")
+            msg = f"GET Call to route {current_app.config['ROUTE_MENU_ITEM']}"
+            current_app.logger.info(msg)
 
             current_app.logger.info("Looking or item in database")
             item = MenuModel.find_by_id(item_id)
@@ -94,13 +98,13 @@ class MenuItem(Resource):
                 current_app.logger.warning(msg)
                 return {"message": msg}, 404
 
-            current_app.logger.info(current_app.config['MSG_ITEM_ADDED'].format(item_id))
+            msg = current_app.config['MSG_ITEM_ADDED'].format(item_id)
+            current_app.logger.info(msg)
             return menu_schema.dump(item), 200
 
         except BaseException:
             current_app.logger.error(app_error(nondict=True))
             return app_error()
-
 
     @classmethod
     def delete(cls, item_id: int):
@@ -108,10 +112,12 @@ class MenuItem(Resource):
         route to delete a menu item
 
         postman request:
-        DELETE {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU_ITEM']}
+        DELETE {current_app.config['ROUTE_MENU_ITEM']}
         """
         try:
-            current_app.logger.info(f"DELETE Call to route {current_app.config['ROUTE_MENU_ITEM']}")
+            route = current_app.config['ROUTE_MENU_ITEM']
+            msg = f"DELETE Call to route {route}"
+            current_app.logger.info(msg)
 
             current_app.logger.info("Looking for item")
             item = MenuModel.find_by_id(item_id)
@@ -134,21 +140,21 @@ class MenuItem(Resource):
             current_app.logger.error(app_error(nondict=True))
             return app_error()
 
-
     @classmethod
     def put(cls, item_id: int):
         f"""
         route to update full menu by id
 
         postman request:
-        PUT {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU']}
+        PUT {current_app.config['ROUTE_MENU']}
         """
         try:
-            current_app.logger.info(f"PUT call to route {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU']}")
-            
-            current_app.logger.info(f"Checking if menu exists")
+            msg = f"PUT call to route {current_app.config['ROUTE_MENU']}"
+            current_app.logger.info()
+
+            current_app.logger.info("Checking if menu exists")
             item = MenuModel.find_by_id(item_id)
-            
+
             # add item if not exists
             if item is None:
                 current_app.logger.info(f"Item {item_id} not found, creating")
@@ -156,19 +162,23 @@ class MenuItem(Resource):
                 # handle validation errors
                 try:
                     # define session
-                    current_app.logger.info(f"Defining session and passing to the load session")
+                    msg = "Defining session and passing to the load session"
+                    current_app.logger.info(msg)
                     session = scoped_session(sessionmaker(bind=engine))
-                    item = menu_schema.load(request.get_json(), session=session)
-                
+                    item = menu_schema.load(request.get_json(),
+                                            session=session)
+
                 except ValidationError as err:
-                    msg = current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)
-                    current_app.logger.error(msg)
-                    return {"message": msg}, 400
-                except BadRequest as err: 
-                    msg = current_app.config['MSG_VALIDATION_ERROR'].format(err)
-                    current_app.logger.error(msg)
-                    return {"message": msg}, 400 
-                
+                    msg = current_app.config['MSG_VALIDATION_ERROR']
+                    msg2 = msg.format(err.messages)
+                    current_app.logger.error(msg2)
+                    return {"message": msg2}, 400
+                except BadRequest as err:
+                    msg = current_app.config['MSG_VALIDATION_ERROR']
+                    msg2 = msg.format(err)
+                    current_app.logger.error(msg2)
+                    return {"message": msg2}, 400
+
                 current_app.logger.info("Added menu item")
                 return {"message": current_app.config['MSG_MENU_UPDATED']}, 201
 
@@ -194,10 +204,11 @@ class MenuList(Resource):
         route to list all menus
 
         postman request:
-        GET {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU_LIST']}
+        GET {current_app.config['ROUTE_MENU_LIST']}
         """
         try:
-            current_app.logger.info(f"GET call to route {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_MENU_LIST']}")
+            msg = f"GET call to route {current_app.config['ROUTE_MENU_LIST']}"
+            current_app.logger.info(msg)
             return {"items": menu_list_schema.dump(MenuModel.find_all())}, 200
 
         except BaseException:
@@ -215,33 +226,38 @@ class OrderAdd(Resource):
         route to place an order with a list of ids
 
         postman request:
-        POST {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_ORDER']}
+        POST {current_app.config['ROUTE_ORDER']}
         """
         try:
-            current_app.logger.info(f"POST call to route {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_ORDER']}")
+            msg = f"POST call to {current_app.config['ROUTE_ORDER']}"
+            current_app.logger.info(msg)
 
             # validation error separately to return custom error messages
             try:
-                current_app.logger.info(f"Defining session and passing to the load session")
-                #session = scoped_session(sessionmaker(bind=engine))
+                msg = "Defining session and passing to the load session"
+                current_app.logger.info(msg)
                 session = db.session()
                 order = order_schema.load(request.get_json(), session=session)
 
             except ValidationError as err:
-                msg = current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)
-                current_app.logger.error(msg)
-                return {"message": msg}, 400
-            except BadRequest as err: 
+                msg = current_app.config['MSG_VALIDATION_ERROR']
+                msg2 = msg.format(err.messages)
+                current_app.logger.error(msg2)
+                return {"message": msg2}, 400
+            except BadRequest as err:
                 msg = current_app.config['MSG_VALIDATION_ERROR'].format(err)
                 current_app.logger.error(msg)
-                return {"message": msg}, 400 
+                return {"message": msg}, 400
 
             # check if order with order id already exists in the database
             if OrderModel.find_by_id(order.order_id):
-                return {"message": current_app.config['MSG_ORDER_EXISTS'].format(order.order_id)}, 400
-            
+                msg = current_app.config['MSG_ORDER_EXISTS']
+                msg2 = msg.format(order.order_id)
+                return {"message": msg2}, 400
+
             # check if the payment amount is enough for the order
-            current_app.logger.info("Checking if payment is correct & there is enough quantity in stock")
+            msg = "Checking if payment is correct & there is enough in stock"
+            current_app.logger.info(msg)
 
             order_dump = order_schema.dump(order)
             total_due = 0
@@ -249,45 +265,51 @@ class OrderAdd(Resource):
             for item in order_dump['items']:
                 menu_item = MenuModel.find_by_id(item['item_id'])
                 if not menu_item:
-                    msg = current_app.config['MSG_ITEM_NOT_FOUND'].format(item['item_id'])
-                    current_app.logger.warning(msg)
-                    return {f"message": msg}, 404
-                
+                    msg = current_app.config['MSG_ITEM_NOT_FOUND']
+                    msg2 = msg.format(item['item_id'])
+                    current_app.logger.warning(msg2)
+                    return {"message": msg2}, 404
+
                 # check quantities
                 menu_items = menu_schema.dump(menu_item)
                 if item['quantity'] > menu_items['quantity']:
-                    msg = current_app.config['MSG_ITEM_INSUFFICIENT'].format(item['item_id'], order.order_id)
-                    current_app.logger.warning(msg)
-                    return {"message": msg}, 400
-                
+                    msg = current_app.config['MSG_ITEM_INSUFFICIENT']
+                    msg2 = msg.format(item['item_id'], order.order_id)
+
+                    current_app.logger.warning(msg2)
+                    return {"message": msg2}, 400
+
                 # update total amount due
                 total_due += menu_items['price']*item['quantity']
 
-                # collect updated menu schemas to update the menu after checking price
-                current_app.logger.info(f"Menu before: {menu_items}")
+                # collect updated menu schemas to update the menu
                 new_quantity = menu_items['quantity'] - item['quantity']
                 menu_items['quantity'] = new_quantity
-                current_app.logger.info(f"Menu after: {menu_items}")
-                current_app.logger.info(f"Loading updated schema & adding to list for later")
+                msg = "Loading updated schema & adding to list for later"
+                current_app.logger.info(msg)
                 updated_item = menu_schema.load(menu_items, session=session)
                 all_updated_items.append(updated_item)
-            
+
             # 2 cases, either they underpaid or overpaid
             if total_due > order_dump['payment_amount']:
                 remaining = total_due - order_dump['payment_amount']
-                msg = current_app.config['MSG_PAYMENT_INSUFFICIENT'].format(total_due,
-                                                                            order_dump['payment_amount'],
-                                                                            remaining)
+                msg = current_app.config['MSG_PAYMENT_INSUFFICIENT']
+                msg2 = msg.format(total_due,
+                                  order_dump['payment_amount'],
+                                  remaining)
+
                 current_app.logger.warning(msg)
-                return {"mesage": msg}, 400
+                return {"mesage": msg2}, 400
 
             if total_due < order_dump['payment_amount']:
+                msg1 = current_app.config['MSG_PAYMENT_OVERCHARGE']
                 remaining = order_dump['payment_amount'] - total_due
-                msg = current_app.config['MSG_PAYMENT_OVERCHARGE'].format(total_due,
-                                                                          order_dump['payment_amount'],
-                                                                          remaining)
-                current_app.logger.warning(msg)
-                return {"message": msg}, 400
+                msg2 = msg1.format(total_due,
+                                   order_dump['payment_amount'],
+                                   remaining)
+
+                current_app.logger.warning(msg2)
+                return {"message": msg2}, 400
 
             # update the menu items
             current_app.logger.info("Updating menu items")
@@ -314,12 +336,14 @@ class OrderList(Resource):
         route to list all orders successfully placed
 
         postman request:
-        GET {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_ORDER_LIST']}
+        GET {current_app.config['ROUTE_ORDER_LIST']}
         """
         try:
-            current_app.logger.info(f"GET call to route {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_ORDER_LIST']}")
-            return {"orders": order_list_schema.dump(OrderModel.find_all())}, 200
+            out = {"orders": order_list_schema.dump(OrderModel.find_all())}
+            msg = f"GET call to {current_app.config['ROUTE_ORDER_LIST']}"
+            current_app.logger.info(msg)
+            return out, 200
 
         except BaseException:
-           current_app.logger.error(app_error(nondict=True))
-           return app_error()
+            current_app.logger.error(app_error(nondict=True))
+            return app_error()

@@ -7,7 +7,7 @@ class UserSchema(SQLAlchemyAutoSchema):
     """
     schema for users to login
     """
-    
+
     class Meta:
         """
         get sqlalchemy to autofill the schema fields
@@ -15,4 +15,3 @@ class UserSchema(SQLAlchemyAutoSchema):
         model = UserModel
         include_relationships = True
         load_instance = True
-        #include_fk = True

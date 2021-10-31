@@ -10,7 +10,7 @@ def app():
     """
 
     params = {
-        'DEBUG': False, 
+        'DEBUG': False,
         'TESTING': True
     }
 
