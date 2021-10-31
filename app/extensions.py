@@ -9,8 +9,11 @@ db = SQLAlchemy()
 ma= Marshmallow()
 
 
-def app_error():
+def app_error(nondict=False):
     """
-    helper function to return traceback in the request
+    helper function to return traceback
     """
+    if nondict:
+        f"There was an application error. traceback: {traceback.format_exc()}"
+    
     return {"There was an application error. traceback: ": f"{traceback.format_exc()}"} 

@@ -41,8 +41,12 @@ MSG_ERROR_INSERTING = "An error occurred while inserting the menu"
 MSG_ITEM_NOT_FOUND = "Item '{}' not found"
 MSG_ITEM_EXISTS = "Item with id '{}' already exists"
 MSG_ITEM_DELETED = "Item with id '{}' deleted"
+MSG_ITEM_ADDED = "Item '{}' added"
 MSG_ORDER_EXISTS = "Order with id '{}' already exists"
 MSG_VALIDATION_ERROR = "There was an error in your payload input: {}"
+MSG_ITEM_INSUFFICIENT = "Insufficient quantity for item with id {}, there are {} available on the menu"
+MSG_PAYMENT_INSUFFICIENT = "Payment insufficient. Total due: ${}, \
+    payment amount: ${}, remaining amount due: ${}"
 
 
 ##### databases

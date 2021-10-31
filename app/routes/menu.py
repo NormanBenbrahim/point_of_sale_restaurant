@@ -1,6 +1,5 @@
-import traceback
 from flask_restful import Resource
-from flask import request, current_app
+from flask import app, request, current_app
 from sqlalchemy import engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from marshmallow import ValidationError
@@ -16,6 +15,7 @@ from app.extensions import db, app_error
 menu_schema = MenuSchema()
 menu_list_schema = MenuSchema(many=True)
 order_schema = OrderSchema()
+order_list_schema = OrderSchema(many=True)
 
 
 class MenuAdd(Resource):
@@ -43,13 +43,14 @@ class MenuAdd(Resource):
                 item = menu_schema.load(request.get_json(), session=session)
 
             except ValidationError as err:
-                current_app.logger.error(f"There was an error in your payload: {err.messages}")
-                return {"message": current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)}, 400                
-
+                msg = current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)
+                current_app.logger.error(msg)
+                return {"message": msg}, 400                
 
             if MenuModel.find_by_id(item.item_id):
-                current_app.logger.warning(f"Item '{item.item_id}' in '{MenuModel.__tablename__}' database")
-                return {"message": current_app.config['MSG_ITEM_EXISTS'].format(item.item_id)}, 400
+                msg = current_app.config['MSG_ITEM_EXISTS'].format(item.item_id)
+                current_app.logger.warning(msg)
+                return {"message": msg}, 200
 
             current_app.logger.info("Saving item to database")
             MenuModel.save_to_db(item)
@@ -58,7 +59,7 @@ class MenuAdd(Resource):
             return {"added": menu_schema.dump(item)}, 200        
         
         except BaseException:     
-            current_app.logger.error(f"There was an application error: {traceback.format_exc()}")
+            current_app.logger.error(app_error(nondict=True))
             return app_error()
 
 
@@ -82,14 +83,15 @@ class MenuItem(Resource):
 
             # handle item not exist
             if not item:
-                current_app.logger.warning(f"Item {item_id} not found, caught error")
-                return {"message": current_app.config['MSG_ITEM_NOT_FOUND'].format(item_id)}, 404
+                msg = current_app.config['MSG_ITEM_NOT_FOUND'].format(item_id)
+                current_app.logger.warning(msg)
+                return {"message": msg}, 404
 
-            current_app.logger.info(f"Item '{item.item_id}' in '{MenuModel.__tablename__}' database")
+            current_app.logger.info(current_app.config['MSG_ITEM_ADDED'].format(item_id))
             return menu_schema.dump(item), 200
 
         except BaseException:
-            current_app.logger.error(f"There was an application error: {traceback.format_exc()}")
+            current_app.logger.error(app_error(nondict=True))
             return app_error()
 
 
@@ -109,18 +111,20 @@ class MenuItem(Resource):
 
             # handle item not exist
             if not item:
-                current_app.logger.info(f"User {item_id} not found, no delete necessary")
-                return{"message": current_app.config['MSG_ITEM_NOT_FOUND'].format(item_id)}, 200
+                msg = current_app.config['MSG_ITEM_NOT_FOUND'].format(item_id)
+                current_app.logger.warning(msg)
+                return{"message": msg}, 404
 
             # delete item
             current_app.logger.info("Deleting item")
             item.delete_from_db()
 
-            current_app.logger.info(f"Successfully deleted {item_id}")
-            return {"message": current_app.config['MSG_ITEM_DELETED'].format(item_id)}, 200
+            msg = current_app.config['MSG_ITEM_DELETED'].format(item_id)
+            current_app.logger.info(msg)
+            return {"message": msg}, 200
 
         except BaseException:
-            current_app.logger.error(f"There was an application error: {traceback.format_exc()}")
+            current_app.logger.error(app_error(nondict=True))
             return app_error()
 
 
@@ -150,8 +154,9 @@ class MenuItem(Resource):
                     item = menu_schema.load(request.get_json(), session=session)
                 
                 except ValidationError as err:
-                    current_app.logger.warning(f"There was an error in your payload: {err.messages}")
-                    return {"message": current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)}, 400
+                    msg = current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)
+                    current_app.logger.warning(msg)
+                    return {"message": msg}, 400
                 
                 current_app.logger.info("Added menu item")
                 return {"message": current_app.config['MSG_MENU_UPDATED']}, 201
@@ -161,10 +166,10 @@ class MenuItem(Resource):
             item.update_from_db()
 
             current_app.logger.info(f"Successfully added {item_id}")
-            return {"updated": menu_schema.dump(item)}, 200
+            return {"updated": menu_schema.dump(item)}, 201
 
         except BaseException:
-            current_app.logger.error(f"There was an application error: {traceback.format_exc()}")
+            current_app.logger.error(app_error(nondict=True))
             return app_error()
 
 
@@ -185,8 +190,8 @@ class MenuList(Resource):
             return {"items": menu_list_schema.dump(MenuModel.find_all())}, 200
 
         except BaseException:
-            current_app.logger.error(f"There was an application error: {traceback.format_exc()}")
-            return {"There was an application error. traceback: ": f"{traceback.format_exc()}"}
+            current_app.logger.error(app_error(nondict=True))
+            return app_error()
 
 
 class OrderAdd(Resource):
@@ -212,8 +217,9 @@ class OrderAdd(Resource):
                 order = order_schema.load(request.get_json(), session=session)
 
             except ValidationError as err:
-                current_app.logger.error(f"There was an error in your payload: {err.messages}")
-                return {"message": current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)}, 404
+                msg = current_app.config['MSG_VALIDATION_ERROR'].format(err.messages)
+                current_app.logger.error(msg)
+                return {"message": msg}, 404
 
             # check if order with order id already exists in the database
             if OrderModel.find_by_id(order.order_id):
@@ -222,29 +228,57 @@ class OrderAdd(Resource):
             # check if the payment amount is enough for the order
             current_app.logger.info("Checking if payment is correct for the items")
 
+            order_dump = order_schema.dump(order)
             total_due = 0
-            for item in order['items']:
+            for item in order_dump['items']:
                 menu_item = MenuModel.find_by_id(item['item_id'])
                 if not menu_item:
-                    current_app.logger.warning(f"order {order.order_id} has invalid menu item (not exist): {item['item_id']}")
-                    return {f"order {order.order_id}": current_app.config['MSG_ITEM_NOT_FOUND'].format(item['item_id'])}
+                    msg = current_app.config['MSG_ITEM_NOT_FOUND'].format(item['item_id'])
+                    current_app.logger.warning(msg)
+                    return {f"message": msg}, 404
                 
                 values = menu_schema.dump(menu_item)
                 if item['quantity'] > values['quantity']:
-                    current_app.logger.warning(f"Insufficient quantity for item {item['item_id']} on order {order.order_id}")
-                    return {"message": f"Insufficient quantity for item with id {item['item_id']}, there are {values['quantity']} available on the menu"}, 400
+                    msg = current_app.config['MSG_ITEM_INSUFFICIENT'].format(item['item_id'], order.order_id)
+                    current_app.logger.warning(msg)
+                    return {"message": msg}, 400
                 
                 total_due += values['price']*item['quantity']
             
             if total_due > order['payment_amount']:
-                current_app.logger.warning(f"Payment insufficient on order {order.order_id}")
-                return {"message": f"Payment insufficient. Total due: ${total_due}, \
-                                     payment amount: ${order['payment_amount']}, remaining amount due: ${total_due-order['payment_amount']}"}, 400
+                remaining = total_due-order['payment_amount']
+                msg = current_app.config['MSG_PAYMENT_INSUFFICIENT'].format(total_due,
+                                                                            order['payment_amount'],
+                                                                            remaining)
+                current_app.logger.warning(msg)
+                return {"error mesage": msg}, 200
 
             current_app.logger.info("Saving to database")
             OrderModel.save_to_db(order)
 
-            return {"added": order_schema.dump(order)}, 200
+            return {"added": order_dump}, 200
 
         except BaseException:
+            current_app.logger.error(app_error(nondict=True))
             return app_error()
+
+
+class OrderList(Resource):
+    """
+    restful interface for listing all orders
+    """
+    @classmethod
+    def get(cls):
+        f"""
+        route to list all orders successfully placed
+
+        postman request:
+        GET {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_ORDER_LIST']}
+        """
+        try:
+            current_app.logger.info(f"GET call to route {current_app.config['SERVER_NAME']}{current_app.config['ROUTE_ORDER_LIST']}")
+            return {"orders": order_list_schema.dump(OrderModel.find_all())}, 200
+
+        except BaseException:
+           current_app.logger.error(app_error(nondict=True))
+           return app_error()
