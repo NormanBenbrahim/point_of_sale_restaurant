@@ -52,9 +52,9 @@ class TestAPI(object):
 
         req = client.post(
             route,
-            data = json.dumps(data),
-            headers = {"Content-Type": "application/json"}
-        )        
+            data=json.dumps(data),
+            headers={"Content-Type": "application/json"}
+            )
 
         # get method isn't allowed for this route
         assert response.status_code == 405

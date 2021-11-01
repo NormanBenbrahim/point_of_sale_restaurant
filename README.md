@@ -348,6 +348,45 @@ GET 0.0.0.0:8000/order/1
 }
 ```
 
+### Get all the orders
+
+**Request**
+
+Make the following request after creating orders
+```
+GET 0.0.0.0:8000/all-orders
+```
+
+**Expected Response**
+```
+{
+    "orders": [
+        {
+            "payment_amount": 45.93,
+            "order_note": "a bunch of food",
+            "order_id": 1,
+            "items": [
+                {
+                    "item_id": 1,
+                    "order_id": 1,
+                    "quantity": 1
+                },
+                {
+                    "item_id": 2,
+                    "order_id": 1,
+                    "quantity": 2
+                },
+                {
+                    "item_id": 3,
+                    "order_id": 1,
+                    "quantity": 4
+                }
+            ]
+        }
+    ]
+}
+```
+
 ### Deleting an order
 
 **Request**

@@ -1,7 +1,5 @@
 from flask_restful import Resource
 from flask import request, current_app
-from sqlalchemy import engine
-from sqlalchemy.orm import scoped_session, sessionmaker
 from marshmallow import ValidationError
 from werkzeug.exceptions import BadRequest
 
@@ -31,9 +29,8 @@ class MenuAdd(Resource):
         postman request:
         POST {current_app.config['ROUTE_MENU']}
         """
+
         try:
-            msg = f"GET call to route {current_app.config['ROUTE_MENU']}"
-            current_app.logger.info(msg)
 
             current_app.logger.info("Looking for menu in database")
 
@@ -155,17 +152,14 @@ class MenuItem(Resource):
 
             current_app.logger.info("Checking if menu exists")
             old_item = MenuModel.find_by_id(item_id)
-            
+
             # if not exists, send error
             if not old_item:
                 msg = current_app.config['ITEM_NOT_FOUND'].format(item_id)
                 current_app.logger.info(msg)
 
                 return {"message": msg}, 404
-            
-            # get as dict
-            old_item_dump = menu_schema.dump(old_item)
-            
+
             # handle validation errors
             try:
                 # define session
@@ -173,7 +167,7 @@ class MenuItem(Resource):
                 current_app.logger.info(msg)
                 session = db.session()
                 new_item = menu_schema.load(request.get_json(),
-                                        session=session)
+                                            session=session)
 
             except ValidationError as err:
                 msg = current_app.config['VALIDATION_ERROR'].format(
@@ -233,7 +227,7 @@ class OrderAdd(Resource):
         """
         try:
             msg = f"POST call to {current_app.config['ROUTE_ORDER']}"
-            current_app.logger.info(msg)        
+            current_app.logger.info(msg)
 
             # validation error separately to return custom error messages
             try:
@@ -325,7 +319,7 @@ class OrderAdd(Resource):
 
             current_app.logger.info("Saving order to database")
             OrderModel.save_to_db(order)
-
+            session.close()
             return {"added. order id": order_dump['order_id']}, 200
 
         except BaseException:
@@ -417,7 +411,8 @@ class OrderItem(Resource):
 
             # add order if not exists
             if order is None:
-                current_app.logger.info(f"order {order_id} not found, creating")
+                msg = f"order {order_id} not found, creating"
+                current_app.logger.info(msg)
 
                 # handle validation errors
                 try:
