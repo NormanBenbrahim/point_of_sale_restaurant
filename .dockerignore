@@ -4,3 +4,4 @@ tmp
 README.md
 __pycache__
 *.pyc
+requirements-dev.txt

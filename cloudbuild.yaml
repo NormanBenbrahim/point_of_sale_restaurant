@@ -1,5 +1,5 @@
 steps:
-  #build
+#build
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 
           'northamerica-northeast2-docker.pkg.dev/${PROJECT_ID}/point-of-sale-api/image:${REVISION_ID}', 
