@@ -1,6 +1,6 @@
 # Point of Sale API for Restaurant Menu
 
-Built with Python 3.9.0 + Docker 20.10.10
+Built with Python 3.9.0 + Docker 20.10.10 + Postgres 14.0
 
 API tested on an Ubuntu 20.04 Desktop 
 
