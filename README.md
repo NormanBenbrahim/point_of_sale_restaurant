@@ -2,28 +2,28 @@
 
 Built with the most recent stable version of Python (3.9.0)
 
+# Setup
 
-# Running the API
+First get the files
 
-First make sure to go into the `.env-example` file and set the variables
+```
+git clone https://github.com/NormanBenbrahim/point_of_sale_restaurant
+cd point_of_sale_restaurant
+```
 
-Then you can use the utility script `util/start-docker.sh` to run the api. I have only tested this on an Ubuntu 20.04 Desktop
-
-The URL will be `0.0.0.0:8000`
+Then make sure to go into the `.env-example` file and set the variables. Then `mv .env-example .env`
 
 ## Initializing container
 
-Using the utility script (**Note** this script will delete any other containers, images & volumes you may have open. It also requires `docker-compose`, of course)
+Using the utility script (**Note** this script will delete any other containers, images & volumes you may have open. It also requires `docker-compose` of course)
 
 ```
-mv .env-example
-.env
 ./util/start-docker.sh
 ```
 
 This builds everything from scratch
 
-If you want to build from cache after the first time you run the above script just add a command line argument (any argument string will work, I like to use `c`)
+If you want to build from cache after the first time you run the above script, just add a command line argument (any argument string will work, I like to use `c`)
 
 ```
 ./util/start-docker.sh c
@@ -38,6 +38,7 @@ In Postman you can use the following routes, and each payload should be added in
 # First request: make sure the API is up
 
 **Request**
+
 Make the following request
 ```
 GET 0.0.0.0:8000/
@@ -58,6 +59,7 @@ No payload required
 ### Add a menu item
 
 **Request**
+
 Make the following request
 ```
 POST 0.0.0.0:8000/add-item
@@ -97,6 +99,7 @@ Then if you try to add it again, you should get:
 ### Return a menu item
 
 **Request**
+
 Make the following request after creating the above item
 ```
 GET 0.0.0.0:8000/menu/1
@@ -117,6 +120,7 @@ GET 0.0.0.0:8000/menu/1
 **Note** I made the route so that PUT only works if the item exists. This way it won't create a new item if you input a new item id, so that the restaurant doesn't accidentally accept orders if they don't actually have enough stock
 
 **Request**
+
 Make the following request, let's update the royale with cheese
 ```
 PUT 0.0.0.0:8000/menu/1
@@ -159,6 +163,7 @@ Then if you do a GET to 0.0.0.0:8000/menu/1, you should see
 ### Delete a menu item
 
 **Request**
+
 Make the following request, let's delete the royale with cheese
 
 ```
@@ -256,6 +261,7 @@ If you make the request while there are no items on the menu it will return
 ### Add a new order
 
 **Request**
+
 Let's assume you still have the above 3 items in the menu. If you make a request to
 
 ```
@@ -310,6 +316,7 @@ You will get a similar message if there is an overpayment in the request, or not
 
 
 **Request**
+
 Make the following request after creating the above order
 ```
 GET 0.0.0.0:8000/order/1
@@ -344,6 +351,7 @@ GET 0.0.0.0:8000/order/1
 ### Deleting an order
 
 **Request**
+
 Make the following request after creating the above order
 ```
 DELETE 0.0.0.0:8000/order/1
@@ -391,9 +399,9 @@ This will run tests, attempt to do test coverage, and do flake8 linting
 
 I overcomplicated things by trying to get jwt authentication working from the beginning. I thought to myself "hey, I've done complex JWT auth stuff in Express, this should be easy"
 
-Well, adding `jwt_required` to my routes broke the routes, and after 3 days spent debugging I just decided to scrap it. 
+Well, adding `jwt_required` to my routes broke the routes, and after 3 days spent debugging I just decided to scrap it
 
-However, I kept the `user` files, and if you would like to see where the authentication was working on the minimal app you can browse the files in this commit: 
+However, I kept the `user` files, and if you would like to see where the authentication was working on the minimal app you can browse the files in this commit: https://github.com/NormanBenbrahim/point_of_sale_restaurant/tree/be00081993bb62ab5c9999e18fb187164e036b02
 
 ### Production
 
@@ -401,11 +409,14 @@ I started by building out a CI/CD pipeline using GCP's cloudbuild (See `cloudbui
 
 The idea was to use cloud build triggers on the main branch so that it would run automatically as a minimal yet pretty functional pipeline. However, with the authentication & whatnot I just got way too into building that and then realized I was 3 days in and didn't have any of the main functionality in the app yet!
 
-The commit where this minimal app works in production is this one: 
+The commit where this minimal app works in production is this one: https://github.com/NormanBenbrahim/point_of_sale_restaurant/tree/1d9d8a00a68a9674a2811304e4551ebb7aedba88
 
 There are also the following utility scripts that can be used inside GCP's cloudshell to build the kubernetes cluster fast:
 
 `util/build-image.sh`
 `util/build-cluster.sh`
 
-# End 
+In general this is how I am used to working. Any new features need a feature branch, and that branch gets pulled into `development` branch, where a senior dev evaluates it, then pushes to `main` where we have auto-builders
+
+# End
+
