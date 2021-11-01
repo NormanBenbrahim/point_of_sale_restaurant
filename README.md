@@ -1,6 +1,8 @@
 # Point of Sale API for Restaurant Menu
 
-Built with the most recent stable version of Python (3.9.0) & tested on Ubuntu 20.04 Desktop
+Built with Python 3.9.0 + Docker 20.10.10
+
+API tested on an Ubuntu 20.04 Desktop 
 
 # Setup
 
