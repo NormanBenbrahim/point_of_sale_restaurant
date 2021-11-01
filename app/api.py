@@ -6,8 +6,14 @@ from flask_cors import CORS
 from app.extensions import db, ma, app_error
 from app.routes.success import Success
 from app.routes.user import UserRegister, User
-from app.routes.menu import MenuAdd, MenuItem, MenuList, OrderAdd, OrderList
-
+from app.routes.menu import (
+    MenuAdd,
+    MenuItem,
+    MenuList,
+    OrderAdd,
+    OrderList,
+    OrderItem
+)
 
 # setup logger
 format = "%(asctime)s [%(levelname)s] %(pathname)s \
@@ -66,6 +72,7 @@ def create_app(settings_override=None):
         # order routes
         api.add_resource(OrderAdd, app.config['ROUTE_ORDER'])
         api.add_resource(OrderList, app.config['ROUTE_ORDER_LIST'])
+        api.add_resource(OrderItem, app.config['ROUTE_ORDER_ITEM'])
 
         app.logger.info("API ready")
         return app

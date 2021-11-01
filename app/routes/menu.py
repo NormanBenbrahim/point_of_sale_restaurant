@@ -40,7 +40,7 @@ class MenuAdd(Resource):
             # validation error separately to return custom error messages
             try:
                 msg = "Defining session and passing to the load session"
-                current_app.logger.info()
+                current_app.logger.info(msg)
                 session = db.session()
                 item = menu_schema.load(request.get_json(), session=session)
 
@@ -62,7 +62,7 @@ class MenuAdd(Resource):
                 return {"message": msg}, 200
 
             current_app.logger.info("Saving item to database")
-            MenuModel.save_to_db(item)
+            item.update_from_db()
 
             msg = f"Menu '{item.item_id}' in '{MenuModel.__tablename__}'"
             current_app.logger.info(msg)
@@ -150,37 +150,37 @@ class MenuItem(Resource):
         """
         try:
             msg = f"PUT call to route {current_app.config['ROUTE_MENU']}"
-            current_app.logger.info()
+            current_app.logger.info(msg)
 
-            current_app.logger.info("Checking if menu exists")
-            item = MenuModel.find_by_id(item_id)
+            # handle validation errors
+            try:
+                # define session
+                msg = "Defining session and passing to the load session"
+                current_app.logger.info(msg)
+                session = scoped_session(sessionmaker(bind=engine))
+                item = menu_schema.load(request.get_json(),
+                                        session=session)
 
-            # add item if not exists
-            if item is None:
-                current_app.logger.info(f"Item {item_id} not found, creating")
+            except ValidationError as err:
+                msg = current_app.config['MSG_VALIDATION_ERROR']
+                msg2 = msg.format(err.messages)
+                current_app.logger.error(msg2)
+                return {"message": msg2}, 400
+            except BadRequest as err:
+                msg = current_app.config['MSG_VALIDATION_ERROR']
+                msg2 = msg.format(err)
+                current_app.logger.error(msg2)
+                return {"message": msg2}, 400
 
-                # handle validation errors
-                try:
-                    # define session
-                    msg = "Defining session and passing to the load session"
-                    current_app.logger.info(msg)
-                    session = scoped_session(sessionmaker(bind=engine))
-                    item = menu_schema.load(request.get_json(),
-                                            session=session)
+            # current_app.logger.info("Checking if menu exists")
+            # item = MenuModel.find_by_id(item_id)
+            
+            # # add item if not exists
+            # if item is None:
+            #     current_app.logger.info(f"Item {item_id} not found, creating")
 
-                except ValidationError as err:
-                    msg = current_app.config['MSG_VALIDATION_ERROR']
-                    msg2 = msg.format(err.messages)
-                    current_app.logger.error(msg2)
-                    return {"message": msg2}, 400
-                except BadRequest as err:
-                    msg = current_app.config['MSG_VALIDATION_ERROR']
-                    msg2 = msg.format(err)
-                    current_app.logger.error(msg2)
-                    return {"message": msg2}, 400
-
-                current_app.logger.info("Added menu item")
-                return {"message": current_app.config['MSG_MENU_UPDATED']}, 201
+            #     current_app.logger.info("Added menu item")
+            #     return {"message": current_app.config['MSG_MENU_UPDATED']}, 201
 
             # update menu
             current_app.logger.info("Updating menu item to database")
@@ -319,7 +319,128 @@ class OrderAdd(Resource):
             current_app.logger.info("Saving order to database")
             OrderModel.save_to_db(order)
 
-            return {"added": order_dump}, 200
+            return {"added. order id": order_dump['order_id']}, 200
+
+        except BaseException:
+            current_app.logger.error(app_error(nondict=True))
+            return app_error()
+
+
+class OrderItem(Resource):
+    """
+    restful interface for adding/querying orders
+    """
+    @classmethod
+    def get(cls, order_id: int):
+        f"""
+        route to lookup a order
+
+        postman request:
+        GET {current_app.config['ROUTE_ORDER_ITEM']}
+        """
+        try:
+            msg = f"GET Call to route {current_app.config['ROUTE_ORDER_ITEM']}"
+            current_app.logger.info(msg)
+
+            current_app.logger.info("Looking or order in database")
+            order = OrderModel.find_by_id(order_id)
+
+            # handle item not exist
+            if not order:
+                msg = current_app.config['MSG_ORDER_NOT_FOUND'].format(order_id)
+                current_app.logger.warning(msg)
+                return {"message": msg}, 404
+
+            msg = current_app.config['MSG_ORDER_ADDED'].format(order_id)
+            current_app.logger.info(msg)
+            return order_schema.dump(order), 200
+
+        except BaseException:
+            current_app.logger.error(app_error(nondict=True))
+            return app_error()
+
+    @classmethod
+    def delete(cls, order_id: int):
+        f"""
+        route to delete a order
+
+        postman request:
+        DELETE {current_app.config['ROUTE_ORDER_ITEM']}
+        """
+        try:
+            route = current_app.config['ROUTE_ORDER_ITEM']
+            msg = f"DELETE Call to route {route}"
+            current_app.logger.info(msg)
+
+            current_app.logger.info("Looking for order")
+            item = OrderModel.find_by_id(order_id)
+
+            # handle item not exist
+            if not item:
+                msg = current_app.config['MSG_ORDER_NOT_FOUND'].format(order_id)
+                current_app.logger.warning(msg)
+                return{"message": msg}, 404
+
+            # delete item
+            current_app.logger.info("Deleting order")
+            item.delete_from_db()
+
+            msg = current_app.config['MSG_ORDER_DELETED'].format(order_id)
+            current_app.logger.info(msg)
+            return {"message": msg}, 200
+
+        except BaseException:
+            current_app.logger.error(app_error(nondict=True))
+            return app_error()
+
+    @classmethod
+    def put(cls, order_id: int):
+        f"""
+        route to update full order by id
+
+        postman request:
+        PUT {current_app.config['ROUTE_ORDER_ITEM']}
+        """
+        try:
+            msg = f"PUT call to route {current_app.config['ROUTE_ORDER_ITEM']}"
+            current_app.logger.info(msg)
+
+            current_app.logger.info("Checking if order exists")
+            order = OrderModel.find_by_id(order_id)
+
+            # add order if not exists
+            if order is None:
+                current_app.logger.info(f"order {order_id} not found, creating")
+
+                # handle validation errors
+                try:
+                    # define session
+                    msg = "Defining session and passing to the load session"
+                    current_app.logger.info(msg)
+                    session = scoped_session(sessionmaker(bind=engine))
+                    order = order_schema.load(request.get_json(),
+                                            session=session)
+
+                except ValidationError as err:
+                    msg = current_app.config['MSG_VALIDATION_ERROR']
+                    msg2 = msg.format(err.messages)
+                    current_app.logger.error(msg2)
+                    return {"message": msg2}, 400
+                except BadRequest as err:
+                    msg = current_app.config['MSG_VALIDATION_ERROR']
+                    msg2 = msg.format(err)
+                    current_app.logger.error(msg2)
+                    return {"message": msg2}, 400
+
+                current_app.logger.info("Added menu order")
+                return {"message": current_app.config['MSG_ORDER_UPDATED']}, 201
+
+            # update menu
+            current_app.logger.info("Updating menu order to database")
+            order.update_from_db()
+
+            current_app.logger.info(f"Successfully added {order_id}")
+            return {"updated": order_schema.dump(order)}, 201
 
         except BaseException:
             current_app.logger.error(app_error(nondict=True))

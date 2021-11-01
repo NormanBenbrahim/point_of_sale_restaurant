@@ -86,5 +86,3 @@ class MenuModel(db.Model):
         except BaseException:
             current_app.logger.error(app_error(nondict=True))
             return app_error()
-
-        current_app.logger.info("Updated items")

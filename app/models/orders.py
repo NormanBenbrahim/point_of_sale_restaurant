@@ -78,6 +78,20 @@ class OrderModel(db.Model):
             current_app.logger.error(app_error(nondict=True))
             return app_error()
 
+    def update_from_db(self, **kwargs) -> None:
+        """
+        update item from database
+        """
+        try:
+            current_app.logger.info("Updating items from database")
+            for key, value in kwargs.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
+
+        except BaseException:
+            current_app.logger.error(app_error(nondict=True))
+            return app_error()
+
 
 class ItemIDsModel(db.Model):
     """

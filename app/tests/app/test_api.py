@@ -1,4 +1,4 @@
-from flask import current_app
+from flask import current_app, json
 
 
 class TestAPI(object):
@@ -43,8 +43,22 @@ class TestAPI(object):
         route = current_app.config['ROUTE_MENU']
         response = client.get(route)
 
+        data = {
+            "item_id": "1",
+            "description": "a royale with cheese",
+            "price": "9.99",
+            "quantity": "12"
+        }
+
+        req = client.post(
+            route,
+            data = json.dumps(data),
+            headers = {"Content-Type": "application/json"}
+        )        
+
         # get method isn't allowed for this route
         assert response.status_code == 405
+        assert req.status_code == 200
 
     def test_add_order(self, client):
         """
