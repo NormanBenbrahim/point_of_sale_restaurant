@@ -30,31 +30,31 @@ ROUTE_ORDER_LIST = '/all-orders'
 
 
 # common messages
-MSG_PAYLOAD_EMPTY = 'No input provided'
-MSG_USER_ALREADY_EXISTS = "A user with that username already exists"
-MSG_CREATED_SUCCESSFULLY = "User created successfully"
-MSG_USER_NOT_FOUND = "User not found."
-MSG_USER_DELETED = "User deleted"
-MSG_INVALID_CREDENTIALS = "Invalid credentials!"
-MSG_USER_LOGGED_OUT = "User successfully logged out"
-MSG_MENU_ALREADY_EXISTS = "A menu with name '{}' already exists"
-MSG_MENU_UPDATED = "Menu updated"
-MSG_ORDER_UPDATED = "Order updated"
-MSG_ERROR_INSERTING = "An error occurred while inserting the menu"
-MSG_ITEM_NOT_FOUND = "Item '{}' not found"
-MSG_ORDER_NOT_FOUND = "Order '{}' not found"
-MSG_ORDER_ADDED = "Order '{}' added"
-MSG_ORDER_DELETED = "Order with id '{}' deleted"
-MSG_ITEM_EXISTS = "Item with id '{}' already exists"
-MSG_ITEM_DELETED = "Item with id '{}' deleted"
-MSG_ITEM_ADDED = "Item '{}' added"
-MSG_ORDER_EXISTS = "Order with id '{}' already exists"
-MSG_VALIDATION_ERROR = "There was an error in your payload input: {}"
-MSG_ITEM_INSUFFICIENT = "Insufficient quantity for item with id {}, there are {} \
+PAYLOAD_EMPTY = 'No input provided'
+USER_ALREADY_EXISTS = "A user with that username already exists"
+CREATED_SUCCESSFULLY = "User created successfully"
+USER_NOT_FOUND = "User not found."
+USER_DELETED = "User deleted"
+INVALID_CREDENTIALS = "Invalid credentials!"
+USER_LOGGED_OUT = "User successfully logged out"
+MENU_ALREADY_EXISTS = "A menu with name '{}' already exists"
+MENU_UPDATED = "Menu updated"
+ORDER_UPDATED = "Order updated"
+ERROR_INSERTING = "An error occurred while inserting the menu"
+ITEM_NOT_FOUND = "Item '{}' not found"
+ORDER_NOT_FOUND = "Order '{}' not found"
+ORDER_ADDED = "Order '{}' added"
+ORDER_DELETED = "Order with id '{}' deleted"
+ITEM_EXISTS = "Item with id '{}' already exists"
+ITEM_DELETED = "Item with id '{}' deleted"
+ITEM_ADDED = "Item '{}' added"
+ORDER_EXISTS = "Order with id '{}' already exists"
+VALIDATION_ERROR = "There was an error in your payload input: {}"
+ITEM_INSUFFICIENT = "Insufficient quantity for item with id {}, there are {} \
     available on the menu"
-MSG_PAYMENT_INSUFFICIENT = "Payment insufficient. Total due: ${}, payment amount: ${}, \
+PAYMENT_INSUFFICIENT = "Payment insufficient. Total due: ${}, payment amount: ${}, \
     remaining amount due: ${}"
-MSG_PAYMENT_OVERCHARGE = "Overcharging for order. Total due: ${}, payment_amount: ${}, \
+PAYMENT_OVERCHARGE = "Overcharging for order. Total due: ${}, payment_amount: ${}, \
     overcharged by: ${}"
 
 

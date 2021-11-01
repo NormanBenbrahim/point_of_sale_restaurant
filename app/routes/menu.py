@@ -45,24 +45,26 @@ class MenuAdd(Resource):
                 item = menu_schema.load(request.get_json(), session=session)
 
             except ValidationError as err:
-                msg = current_app.config['MSG_VALIDATION_ERROR']
-                msg2 = msg.format(err.messages)
-                current_app.logger.error(msg2)
+                msg = current_app.config['VALIDATION_ERROR'].format(
+                            err.messages
+                            )
+                current_app.logger.error(msg)
                 return {"message": msg}, 400
             except BadRequest as err:
-                msg = current_app.config['MSG_VALIDATION_ERROR']
-                msg2 = msg.format(err)
-                current_app.logger.error(msg2)
+                msg = current_app.config['VALIDATION_ERROR'].format(err)
+                current_app.logger.error(msg)
                 return {"message": msg}, 400
 
             if MenuModel.find_by_id(item.item_id):
-                msg = current_app.config['MSG_ITEM_EXISTS']
-                msg2 = msg.format(item.item_id)
-                current_app.logger.warning(msg2)
+                id = item.item_id
+                msg = current_app.config['ITEM_EXISTS'].format(
+                            item.item_id
+                            )
+                current_app.logger.warning(msg)
                 return {"message": msg}, 200
 
             current_app.logger.info("Saving item to database")
-            item.update_from_db()
+            item.save_to_db()
 
             msg = f"Menu '{item.item_id}' in '{MenuModel.__tablename__}'"
             current_app.logger.info(msg)
@@ -94,11 +96,11 @@ class MenuItem(Resource):
 
             # handle item not exist
             if not item:
-                msg = current_app.config['MSG_ITEM_NOT_FOUND'].format(item_id)
+                msg = current_app.config['ITEM_NOT_FOUND'].format(item_id)
                 current_app.logger.warning(msg)
                 return {"message": msg}, 404
 
-            msg = current_app.config['MSG_ITEM_ADDED'].format(item_id)
+            msg = current_app.config['ITEM_ADDED'].format(item_id)
             current_app.logger.info(msg)
             return menu_schema.dump(item), 200
 
@@ -124,7 +126,7 @@ class MenuItem(Resource):
 
             # handle item not exist
             if not item:
-                msg = current_app.config['MSG_ITEM_NOT_FOUND'].format(item_id)
+                msg = current_app.config['ITEM_NOT_FOUND'].format(item_id)
                 current_app.logger.warning(msg)
                 return{"message": msg}, 404
 
@@ -132,7 +134,7 @@ class MenuItem(Resource):
             current_app.logger.info("Deleting item")
             item.delete_from_db()
 
-            msg = current_app.config['MSG_ITEM_DELETED'].format(item_id)
+            msg = current_app.config['ITEM_DELETED'].format(item_id)
             current_app.logger.info(msg)
             return {"message": msg}, 200
 
@@ -157,36 +159,37 @@ class MenuItem(Resource):
                 # define session
                 msg = "Defining session and passing to the load session"
                 current_app.logger.info(msg)
-                session = scoped_session(sessionmaker(bind=engine))
+                #session = scoped_session(sessionmaker(bind=engine))
+                session = db.session()
                 item = menu_schema.load(request.get_json(),
                                         session=session)
 
             except ValidationError as err:
-                msg = current_app.config['MSG_VALIDATION_ERROR']
-                msg2 = msg.format(err.messages)
-                current_app.logger.error(msg2)
-                return {"message": msg2}, 400
+                msg = current_app.config['VALIDATION_ERROR'].format(
+                            err.messages
+                            )
+                current_app.logger.error(msg)
+                return {"message": msg}, 400
             except BadRequest as err:
-                msg = current_app.config['MSG_VALIDATION_ERROR']
-                msg2 = msg.format(err)
-                current_app.logger.error(msg2)
-                return {"message": msg2}, 400
+                msg = current_app.config['VALIDATION_ERROR'].format(err)
+                current_app.logger.error(msg)
+                return {"message": msg}, 400
 
-            # current_app.logger.info("Checking if menu exists")
-            # item = MenuModel.find_by_id(item_id)
+            current_app.logger.info("Checking if menu exists")
+            old_item = MenuModel.find_by_id(item_id)
             
-            # # add item if not exists
-            # if item is None:
-            #     current_app.logger.info(f"Item {item_id} not found, creating")
+            # if not exists, send error
+            if old_item is None:
+                msg = current_app.config['ITEM_NOT_FOUND'].format(item_id)
+                current_app.logger.info(msg)
 
-            #     current_app.logger.info("Added menu item")
-            #     return {"message": current_app.config['MSG_MENU_UPDATED']}, 201
+                return {"message": msg}, 404
 
             # update menu
             current_app.logger.info("Updating menu item to database")
-            item.update_from_db()
+            item.update_from_db
 
-            current_app.logger.info(f"Successfully added {item_id}")
+            current_app.logger.info(f"Successfully updated {item_id}")
             return {"updated": menu_schema.dump(item)}, 201
 
         except BaseException:
@@ -240,20 +243,20 @@ class OrderAdd(Resource):
                 order = order_schema.load(request.get_json(), session=session)
 
             except ValidationError as err:
-                msg = current_app.config['MSG_VALIDATION_ERROR']
-                msg2 = msg.format(err.messages)
-                current_app.logger.error(msg2)
-                return {"message": msg2}, 400
+                msg = current_app.config['VALIDATION_ERROR'].format(
+                            err.messages
+                            )
+                current_app.logger.error(msg)
+                return {"message": msg}, 400
             except BadRequest as err:
-                msg = current_app.config['MSG_VALIDATION_ERROR'].format(err)
+                msg = current_app.config['VALIDATION_ERROR'].format(err)
                 current_app.logger.error(msg)
                 return {"message": msg}, 400
 
             # check if order with order id already exists in the database
             if OrderModel.find_by_id(order.order_id):
-                msg = current_app.config['MSG_ORDER_EXISTS']
-                msg2 = msg.format(order.order_id)
-                return {"message": msg2}, 400
+                msg = current_app.config['ORDER_EXISTS'].format(order.order_id)
+                return {"message": msg}, 400
 
             # check if the payment amount is enough for the order
             msg = "Checking if payment is correct & there is enough in stock"
@@ -265,19 +268,21 @@ class OrderAdd(Resource):
             for item in order_dump['items']:
                 menu_item = MenuModel.find_by_id(item['item_id'])
                 if not menu_item:
-                    msg = current_app.config['MSG_ITEM_NOT_FOUND']
-                    msg2 = msg.format(item['item_id'])
-                    current_app.logger.warning(msg2)
-                    return {"message": msg2}, 404
+                    msg = current_app.config['ITEM_NOT_FOUND'].format(
+                                item['item_id']
+                                )
+                    current_app.logger.warning(msg)
+                    return {"message": msg}, 404
 
                 # check quantities
                 menu_items = menu_schema.dump(menu_item)
                 if item['quantity'] > menu_items['quantity']:
-                    msg = current_app.config['MSG_ITEM_INSUFFICIENT']
-                    msg2 = msg.format(item['item_id'], order.order_id)
+                    msg = current_app.config['ITEM_INSUFFICIENT'].format(
+                                item['item_id'], order.order_id
+                                )
 
-                    current_app.logger.warning(msg2)
-                    return {"message": msg2}, 400
+                    current_app.logger.warning(msg)
+                    return {"message": msg}, 400
 
                 # update total amount due
                 total_due += menu_items['price']*item['quantity']
@@ -293,23 +298,25 @@ class OrderAdd(Resource):
             # 2 cases, either they underpaid or overpaid
             if total_due > order_dump['payment_amount']:
                 remaining = total_due - order_dump['payment_amount']
-                msg = current_app.config['MSG_PAYMENT_INSUFFICIENT']
-                msg2 = msg.format(total_due,
-                                  order_dump['payment_amount'],
-                                  remaining)
+                msg = current_app.config['PAYMENT_INSUFFICIENT'].format(
+                            total_due,
+                            order_dump['payment_amount'],
+                            remaining
+                            )
 
                 current_app.logger.warning(msg)
-                return {"mesage": msg2}, 400
+                return {"mesage": msg}, 400
 
             if total_due < order_dump['payment_amount']:
-                msg1 = current_app.config['MSG_PAYMENT_OVERCHARGE']
                 remaining = order_dump['payment_amount'] - total_due
-                msg2 = msg1.format(total_due,
-                                   order_dump['payment_amount'],
-                                   remaining)
+                msg = current_app.config['PAYMENT_OVERCHARGE'].format(
+                            total_due,
+                            order_dump['payment_amount'],
+                            remaining
+                            )
 
-                current_app.logger.warning(msg2)
-                return {"message": msg2}, 400
+                current_app.logger.warning(msg)
+                return {"message": msg}, 400
 
             # update the menu items
             current_app.logger.info("Updating menu items")
@@ -347,11 +354,11 @@ class OrderItem(Resource):
 
             # handle item not exist
             if not order:
-                msg = current_app.config['MSG_ORDER_NOT_FOUND'].format(order_id)
+                msg = current_app.config['ORDER_NOT_FOUND'].format(order_id)
                 current_app.logger.warning(msg)
                 return {"message": msg}, 404
 
-            msg = current_app.config['MSG_ORDER_ADDED'].format(order_id)
+            msg = current_app.config['ORDER_ADDED'].format(order_id)
             current_app.logger.info(msg)
             return order_schema.dump(order), 200
 
@@ -377,7 +384,7 @@ class OrderItem(Resource):
 
             # handle item not exist
             if not item:
-                msg = current_app.config['MSG_ORDER_NOT_FOUND'].format(order_id)
+                msg = current_app.config['ORDER_NOT_FOUND'].format(order_id)
                 current_app.logger.warning(msg)
                 return{"message": msg}, 404
 
@@ -385,7 +392,7 @@ class OrderItem(Resource):
             current_app.logger.info("Deleting order")
             item.delete_from_db()
 
-            msg = current_app.config['MSG_ORDER_DELETED'].format(order_id)
+            msg = current_app.config['ORDER_DELETED'].format(order_id)
             current_app.logger.info(msg)
             return {"message": msg}, 200
 
@@ -422,18 +429,18 @@ class OrderItem(Resource):
                                             session=session)
 
                 except ValidationError as err:
-                    msg = current_app.config['MSG_VALIDATION_ERROR']
-                    msg2 = msg.format(err.messages)
-                    current_app.logger.error(msg2)
-                    return {"message": msg2}, 400
+                    msg = current_app.config['VALIDATION_ERROR'].format(
+                                err.messages
+                                )
+                    current_app.logger.error(msg)
+                    return {"message": msg}, 400
                 except BadRequest as err:
-                    msg = current_app.config['MSG_VALIDATION_ERROR']
-                    msg2 = msg.format(err)
-                    current_app.logger.error(msg2)
-                    return {"message": msg2}, 400
+                    msg = current_app.config['VALIDATION_ERROR'].format(err)
+                    current_app.logger.error(msg)
+                    return {"message": msg}, 400
 
                 current_app.logger.info("Added menu order")
-                return {"message": current_app.config['MSG_ORDER_UPDATED']}, 201
+                return {"message": current_app.config['ORDER_UPDATED']}, 201
 
             # update menu
             current_app.logger.info("Updating menu order to database")
