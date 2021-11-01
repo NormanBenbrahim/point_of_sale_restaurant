@@ -56,7 +56,6 @@ class MenuAdd(Resource):
                 return {"message": msg}, 400
 
             if MenuModel.find_by_id(item.item_id):
-                id = item.item_id
                 msg = current_app.config['ITEM_EXISTS'].format(
                             item.item_id
                             )
@@ -154,14 +153,26 @@ class MenuItem(Resource):
             msg = f"PUT call to route {current_app.config['ROUTE_MENU']}"
             current_app.logger.info(msg)
 
+            current_app.logger.info("Checking if menu exists")
+            old_item = MenuModel.find_by_id(item_id)
+            
+            # if not exists, send error
+            if not old_item:
+                msg = current_app.config['ITEM_NOT_FOUND'].format(item_id)
+                current_app.logger.info(msg)
+
+                return {"message": msg}, 404
+            
+            # get as dict
+            old_item_dump = menu_schema.dump(old_item)
+            
             # handle validation errors
             try:
                 # define session
                 msg = "Defining session and passing to the load session"
                 current_app.logger.info(msg)
-                #session = scoped_session(sessionmaker(bind=engine))
                 session = db.session()
-                item = menu_schema.load(request.get_json(),
+                new_item = menu_schema.load(request.get_json(),
                                         session=session)
 
             except ValidationError as err:
@@ -175,22 +186,11 @@ class MenuItem(Resource):
                 current_app.logger.error(msg)
                 return {"message": msg}, 400
 
-            current_app.logger.info("Checking if menu exists")
-            old_item = MenuModel.find_by_id(item_id)
-            
-            # if not exists, send error
-            if old_item is None:
-                msg = current_app.config['ITEM_NOT_FOUND'].format(item_id)
-                current_app.logger.info(msg)
-
-                return {"message": msg}, 404
-
-            # update menu
-            current_app.logger.info("Updating menu item to database")
-            item.update_from_db
+            current_app.logger.info("Saving to database")
+            new_item.save_to_db()
 
             current_app.logger.info(f"Successfully updated {item_id}")
-            return {"updated": menu_schema.dump(item)}, 201
+            return {"updated": menu_schema.dump(new_item)}, 201
 
         except BaseException:
             current_app.logger.error(app_error(nondict=True))
@@ -233,7 +233,7 @@ class OrderAdd(Resource):
         """
         try:
             msg = f"POST call to {current_app.config['ROUTE_ORDER']}"
-            current_app.logger.info(msg)
+            current_app.logger.info(msg)        
 
             # validation error separately to return custom error messages
             try:
@@ -264,7 +264,7 @@ class OrderAdd(Resource):
 
             order_dump = order_schema.dump(order)
             total_due = 0
-            all_updated_items = []
+            items_to_update = []
             for item in order_dump['items']:
                 menu_item = MenuModel.find_by_id(item['item_id'])
                 if not menu_item:
@@ -293,7 +293,7 @@ class OrderAdd(Resource):
                 msg = "Loading updated schema & adding to list for later"
                 current_app.logger.info(msg)
                 updated_item = menu_schema.load(menu_items, session=session)
-                all_updated_items.append(updated_item)
+                items_to_update.append(updated_item)
 
             # 2 cases, either they underpaid or overpaid
             if total_due > order_dump['payment_amount']:
@@ -320,7 +320,7 @@ class OrderAdd(Resource):
 
             # update the menu items
             current_app.logger.info("Updating menu items")
-            for update_this in all_updated_items:
+            for update_this in items_to_update:
                 update_this.update_from_db()
 
             current_app.logger.info("Saving order to database")
@@ -424,9 +424,9 @@ class OrderItem(Resource):
                     # define session
                     msg = "Defining session and passing to the load session"
                     current_app.logger.info(msg)
-                    session = scoped_session(sessionmaker(bind=engine))
+                    session = db.session()
                     order = order_schema.load(request.get_json(),
-                                            session=session)
+                                              session=session)
 
                 except ValidationError as err:
                     msg = current_app.config['VALIDATION_ERROR'].format(

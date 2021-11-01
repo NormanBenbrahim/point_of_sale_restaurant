@@ -23,17 +23,17 @@ mv .env-example
 
 This builds everything from scratch
 
-If you want to build from cache after the first time you run the above script just add a command line argument (any argument string will work, I like to use `cache`)
+If you want to build from cache after the first time you run the above script just add a command line argument (any argument string will work, I like to use `c`)
 
 ```
-./util/start-docker.sh cache
+./util/start-docker.sh c
 ```
 
 There is also a `cleanup.sh` script that you can use to clean your system of any dangling images that may slow down your system
 
 # Calling the API
 
-In Postman you can use the following routes:
+In Postman you can use the following routes, and each payload should be added in the raw field with JSON selected as input
 
 # First request: make sure the API is up
 
@@ -114,12 +114,12 @@ GET 0.0.0.0:8000/menu/1
 
 ### Update a menu item
 
-**Note** I made the route so that PUT only works if the item exists. This way it won't create a new item if you input a new item id. This can easily be changed in the route though
+**Note** I made the route so that PUT only works if the item exists. This way it won't create a new item if you input a new item id, so that the restaurant doesn't accidentally accept orders if they don't actually have enough stock
 
 **Request**
 Make the following request, let's update the royale with cheese
 ```
-PUT 0.0.0.0:8000/add-item
+PUT 0.0.0.0:8000/menu/1
 ```
 
 Example raw payload, note you must supply the entire payload including any fields you don't update
@@ -183,7 +183,7 @@ Then if you do a GET to 0.0.0.0:8000/menu/1, it should respond with
 ### List all items in the menu
 **Request**
 
-First add the following items using the `add-item` POST route:
+First add the following 3 items using the `POST /add-item` route:
 
 ```
 {
@@ -192,14 +192,18 @@ First add the following items using the `add-item` POST route:
     "price": "9.99",
     "quantity": "12"
 }
+```
 
+```
 {
     "item_id": "2",
     "description": "hamburger",
     "price": "7.99",
     "quantity": "20"
 }
+```
 
+```
 {
     "item_id": "3",
     "description": "fries",
@@ -219,24 +223,31 @@ GET 0.0.0.0:8000/all-items
 {
     "items": [
         {
-            "quantity": 18,
-            "description": "hamburger",
-            "price": 7.99,
-            "item_id": 2
-        },
-        {
-            "quantity": 41,
-            "description": "fries",
-            "price": 4.99,
-            "item_id": 3
-        },
-        {
-            "quantity": 12,
+            "item_id": 1,
             "description": "a royale with cheese",
-            "price": 9.99,
-            "item_id": 1
+            "quantity": 12,
+            "price": 9.99
+        },
+        {
+            "item_id": 2,
+            "description": "hamburger",
+            "quantity": 20,
+            "price": 7.99
+        },
+        {
+            "item_id": 3,
+            "description": "fries",
+            "quantity": 45,
+            "price": 4.99
         }
     ]
+}
+```
+
+If you make the request while there are no items on the menu it will return
+```
+{
+    "items": []
 }
 ```
 
@@ -282,7 +293,9 @@ If you then change your payment amount to the correct amount, you should get:
 }
 ```
 
-**Additionally** it wouldn't be a complete POS system if the item quantities didn't update too. If you do a GET to menu/1 for example, you will see that the quantities are also changed
+You will get a similar message if there is an overpayment in the request, or not enough quantity in the menu for the menu items
+
+**Additionally** it wouldn't be a complete POS system if the item quantities didn't update too. After you add the order, if you do a GET to menu/1 for example, you will see that the quantities are also changed
 
 ```
 {
@@ -293,13 +306,68 @@ If you then change your payment amount to the correct amount, you should get:
 }
 ```
 
+### Return an order
+
+
+**Request**
+Make the following request after creating the above order
+```
+GET 0.0.0.0:8000/order/1
+```
+
+**Expected Response**
+```
+{
+    "payment_amount": 45.93,
+    "items": [
+        {
+            "item_id": 1,
+            "quantity": 1,
+            "order_id": 1
+        },
+        {
+            "item_id": 2,
+            "quantity": 2,
+            "order_id": 1
+        },
+        {
+            "item_id": 3,
+            "quantity": 4,
+            "order_id": 1
+        }
+    ],
+    "order_id": 1,
+    "order_note": "a bunch of food"
+}
+```
+
+### Deleting an order
+
+**Request**
+Make the following request after creating the above order
+```
+DELETE 0.0.0.0:8000/order/1
+```
+
+**Expected Response**
+```
+{
+    "message": "Order with id '1' deleted"
+}
+
+```
+
+I did not implement re-adding the item quantities after deleting the order, this was difficult and I wanted to hand something in within a reasonable time. The update route for orders also doesn't have this logic
+
+However, given enough time I'm sure I could figure it out
+
 # Logging
 
 There is custom logging built-into the code, it will log to the console directly. I chose to do it this way because when launching containers to GCP on Kubernetes it records the logs for you on the web platform. In dev logs are simply output to the console
 
 # Testing
 
-This was my first time writing tests, as usually in my current role QA handles that, we just try break the code and add the right exceptions. As such, I couldn't get POST tests with input data to work, so I only queried the endpoints
+This was my first time writing tests, in my current role QA handles that. We just try break the code and add the right exceptions. As such, I couldn't get POST tests with input data to work, so I only queried the endpoints
 
 With the container running, in another tab run
 
@@ -312,7 +380,10 @@ This will run tests, attempt to do test coverage, and do flake8 linting
 # Notes on some design decisions
 
 1. I chose to go with numerical IDs. There are benefits and drawdowns to this, but I kind of just wanted to get it working since it's easy to build an autoincrementing ID structure if it's just integers
-2. 
+2. Python 3.9 was released Oct 4 2021. When I download new packages (e.g. `flask`), I go into the release history and include the version that is released either on the same date (Oct 4 2021) or earlier. While this isn't bulletproof, it ensures you are working with compatible packages
+3. When adding new "lego blocks" on top of flask, I chose to use an `extensions.py` file, with a method at the bottom of `api.py` which loads them all up. This way you can create custom error outputs and stuff and be able to edit everything in one place
+4. I tried to make as many things as possible get called from `config/settings.py` (or `instance/settings.py` in prod) so that it is easy to update things
+5. I had to use a custom `Nested` field for creating the orders table, see `app/schemas/orders.py` for more details. I believe this is still an outstanding issue for the marshmallow team, but maybe I am overthinking it
 
 # Things I would do differently next time
 
@@ -336,3 +407,5 @@ There are also the following utility scripts that can be used inside GCP's cloud
 
 `util/build-image.sh`
 `util/build-cluster.sh`
+
+# End 
