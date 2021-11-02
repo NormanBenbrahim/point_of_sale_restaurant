@@ -272,7 +272,7 @@ class OrderAdd(Resource):
                 menu_items = menu_schema.dump(menu_item)
                 if item['quantity'] > menu_items['quantity']:
                     msg = current_app.config['ITEM_INSUFFICIENT'].format(
-                                item['item_id'], order.order_id
+                                item['quantity'], order.order_id
                                 )
 
                     current_app.logger.warning(msg)
